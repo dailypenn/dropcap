@@ -18,7 +18,8 @@ if ($mc->getResultCode() == Memcached::RES_NOTFOUND) {
   $response = getReport($analytics);
   $jsonResult = resultsAsJson($response);
   print $jsonResult;
-  $mc->set('topTenCache', $jsonResult, time() + 10);
+  // Expire in an hour
+  $mc->set('topTenCache', $jsonResult, time() + 3600);
 } else {
   file_put_contents("php://stderr", "Retrieved contents from cache.\n");
   print $cached;
@@ -92,7 +93,7 @@ function getReport($analytics) {
 
 function resultsAsJson(&$reports) {
   header("Content-Type: text/plain");
-  print '{ "topTen" : [';
+  $result .= '{ "topTen" : [';
   for ( $reportIndex = 0; $reportIndex < count( $reports ); $reportIndex++ ) {
     $report = $reports[ $reportIndex ];
     $header = $report->getColumnHeader();
