@@ -18,7 +18,7 @@ function initializeAnalytics()
 
   // Create and configure a new client object.
   $client = new Google_Client();
-  $client->setApplicationName("Hello Analytics Reporting");
+  $client->setApplicationName("Dropcap - DP Analytics Server");
   $client->setAuthConfig($KEY_FILE_LOCATION);
   $client->setScopes(['https://www.googleapis.com/auth/analytics.readonly']);
   $analytics = new Google_Service_AnalyticsReporting($client);
@@ -92,6 +92,9 @@ function printResultsAsJson(&$reports) {
         $value = str_replace("The Daily Pennsylvanian - | ", "", $dimensions[$i]);
         $value = str_replace("The Daily Pennsylvanian | ", "", $value);
         print('"'.$dimensionHeaders[$i].'"'. ": " . '"'.$value.'",' . "\n");
+        if ($dimensionHeaders[$i] == 'ga:pagePath') {
+          print(getOpenGraphImg($value));
+        }
       }
 
       for ($j = 0; $j < count( $metricHeaders ) && $j < count( $metrics ); $j++) {
@@ -106,4 +109,16 @@ function printResultsAsJson(&$reports) {
     }
   }
   print "]}";
+}
+
+function getOpenGraphImg($urlPath) {
+  $reader = new Opengraph\Reader();
+  $reader->parse(file_get_contents("http://thedp.com".$urlPath));
+  $ogTags = $reader->getArrayCopy();
+  
+  $photoURL = $ogTags["og:image"][0]['og:image:url'];
+  // Make sure we're getting the thumbnail.
+  $photoURL = str_replace("f.", "t.", $photoURL);
+  
+  return '"ogImage": "'.$photoURL.'",'."\n";
 }
