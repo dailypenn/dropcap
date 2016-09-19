@@ -1,0 +1,25 @@
+{
+  "name": "dropcap",
+  "version": "0.0.1",
+  "main": "app.js",
+  "scripts": {
+    "start": "node bin/www",
+    "deploy": "gcloud beta functions deploy dropcap --stage-bucket cloud-function-deployments --trigger-http",
+    "test": "mocha --recursive test",
+    "test:coverage": "nyc npm test",
+    "test:unit": "mocha --recursive test/middleware test/models test/routes",
+    "test:integration": "mocha --recursive test/integration"
+  },
+  "dependencies": {
+    "express": "^4.13.3",
+    "googleapis": "^22.2.0",
+    "open-graph-scraper": "^3.0.1"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "debug": "^2.2.0",
+    "mocha": "^3.0.2",
+    "nyc": "^10.0.0",
+    "supertest": "^2.0.0"
+  }
+}
