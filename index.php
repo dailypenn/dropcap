@@ -13,12 +13,12 @@ $mc->addServers(array_map(function($server) { return explode(':', $server, 2); }
 $mc->setSaslAuthData($_ENV['MEMCACHEDCLOUD_USERNAME'], $_ENV['MEMCACHEDCLOUD_PASSWORD']);
 
 if ($mc->get('topTenCache') == "" || $mc->get('topTenCache') == false) {
-  print $mc->get('topTenCache');
-} else {
   $response = getReport($analytics);
   $jsonResult = resultsAsJson($response);
   print $jsonResult;
   $mc->set('topTenCache', $jsonResult, MEMCACHE_COMPRESSED, 50);
+} else {
+  print $mc->get('topTenCache');
 }
 
 function initializeAnalytics()
