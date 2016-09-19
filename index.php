@@ -3,6 +3,9 @@
 // Load the Google API PHP Client Library.
 require_once __DIR__ . '/vendor/autoload.php';
 
+header("Content-Type: text/plain");
+header('Access-Control-Allow-Origin: *');  
+
 $analytics = initializeAnalytics();
 $result;
 
@@ -92,7 +95,6 @@ function getReport($analytics) {
 }
 
 function resultsAsJson(&$reports) {
-  header("Content-Type: text/plain");
   $result .= '{ "topTen" : [';
   for ( $reportIndex = 0; $reportIndex < count( $reports ); $reportIndex++ ) {
     $report = $reports[ $reportIndex ];
