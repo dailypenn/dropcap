@@ -12,13 +12,16 @@ $mc->setOption(Memcached::OPT_BINARY_PROTOCOL, true);
 $mc->addServers(array_map(function($server) { return explode(':', $server, 2); }, explode(',', $_ENV['MEMCACHEDCLOUD_SERVERS'])));
 $mc->setSaslAuthData($_ENV['MEMCACHEDCLOUD_USERNAME'], $_ENV['MEMCACHEDCLOUD_PASSWORD']);
 
-if ($mc->get('topTenCache') == "" || $mc->get('topTenCache') == false) {
+$cached == $mc->get('topTenCache');
+
+if ($cached == false) {
   $response = getReport($analytics);
   $jsonResult = resultsAsJson($response);
   print $jsonResult;
   $mc->set('topTenCache', $jsonResult, MEMCACHE_COMPRESSED, 50);
 } else {
-  print $mc->get('topTenCache');
+  file_put_contents("php://stderr", "Retrieved contents from cache.\n");
+  print $cached;
 }
 
 function initializeAnalytics()
