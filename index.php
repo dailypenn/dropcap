@@ -18,7 +18,7 @@ if ($mc->getResultCode() == Memcached::RES_NOTFOUND) {
   $response = getReport($analytics);
   $jsonResult = resultsAsJson($response);
   print $jsonResult;
-  $mc->set('topTenCache', $jsonResult, 50);
+  $mc->set('topTenCache', $jsonResult, time() + 10);
 } else {
   file_put_contents("php://stderr", "Retrieved contents from cache.\n");
   print $cached;
