@@ -18,7 +18,7 @@ if ($cached == false) {
   $response = getReport($analytics);
   $jsonResult = resultsAsJson($response);
   print $jsonResult;
-  $mc->set('topTenCache', $jsonResult, MEMCACHE_COMPRESSED, 50);
+  $mc->set('topTenCache', $jsonResult, 50);
 } else {
   file_put_contents("php://stderr", "Retrieved contents from cache.\n");
   print $cached;
