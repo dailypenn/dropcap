@@ -88,7 +88,10 @@ function printResultsAsJson(&$reports) {
       $dimensions = $row->getDimensions();
       $metrics = $row->getMetrics();
       for ($i = 0; $i < count($dimensionHeaders) && $i < count($dimensions); $i++) {
-        print('"'.$dimensionHeaders[$i].'"'. ": " . '"'.$dimensions[$i].'",' . "\n");
+        // Remove heading title, only get title
+        $value = str_replace("The Daily Pennsylvanian - | ", "", $dimensions[$i]);
+        $value = str_replace("The Daily Pennsylvanian | ", "", $value);
+        print('"'.$dimensionHeaders[$i].'"'. ": " . '"'.$value.'",' . "\n");
       }
 
       for ($j = 0; $j < count( $metricHeaders ) && $j < count( $metrics ); $j++) {
