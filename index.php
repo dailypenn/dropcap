@@ -14,7 +14,7 @@ $mc->setSaslAuthData($_ENV['MEMCACHEDCLOUD_USERNAME'], $_ENV['MEMCACHEDCLOUD_PAS
 
 $cached == $mc->get('topTenCache');
 
-if ($cached == false) {
+if ($mc->getResultCode() == Memcached::RES_NOTFOUND) {
   $response = getReport($analytics);
   $jsonResult = resultsAsJson($response);
   print $jsonResult;
