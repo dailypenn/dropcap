@@ -17,7 +17,7 @@ if ($mc->get('topTenCache') == "") {
 } else {
   $response = getReport($analytics);
   $jsonResult = resultsAsJson($response);
-  print $jsonResult
+  print $jsonResult;
   $mc->set('topTenCache', $jsonResult, MEMCACHE_COMPRESSED, 50);
 }
 

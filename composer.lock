@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "51c25cd400e64daa9591d9a8c7c15fdf",
-    "content-hash": "7b85ba85d8c9cb3438bb22c8b331e862",
+    "hash": "96f31d7d94b6d150fdd6a50c7d617275",
+    "content-hash": "3e0e769ef7b38365c52f7e3d87b656c6",
     "packages": [
         {
             "name": "euskadi31/opengraph",
@@ -813,7 +813,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "ext-memcached": "*"
+        "ext-memcached": "^2.2"
     },
     "platform-dev": []
 }
