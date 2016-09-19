@@ -4,8 +4,22 @@
 require_once __DIR__ . '/vendor/autoload.php';
 
 $analytics = initializeAnalytics();
-$response = getReport($analytics);
-printResultsAsJson($response);
+$result;
+
+// Cache
+$mc = new Memcached();
+$mc->setOption(Memcached::OPT_BINARY_PROTOCOL, true);
+$mc->addServers(array_map(function($server) { return explode(':', $server, 2); }, explode(',', $_ENV['MEMCACHEDCLOUD_SERVERS'])));
+$mc->setSaslAuthData($_ENV['MEMCACHEDCLOUD_USERNAME'], $_ENV['MEMCACHEDCLOUD_PASSWORD']);
+
+if ($mc->get('topTenCache') == "") {
+  print $mc->get('topTenCache');
+} else {
+  $response = getReport($analytics);
+  $jsonResult = resultsAsJson($response);
+  print $jsonResult
+  $mc->set('topTenCache', $jsonResult, MEMCACHE_COMPRESSED, 50);
+}
 
 function initializeAnalytics()
 {
@@ -73,7 +87,7 @@ function getReport($analytics) {
   return $analytics->reports->batchGet( $body );
 }
 
-function printResultsAsJson(&$reports) {
+function resultsAsJson(&$reports) {
   header("Content-Type: text/plain");
   print '{ "topTen" : [';
   for ( $reportIndex = 0; $reportIndex < count( $reports ); $reportIndex++ ) {
@@ -83,7 +97,7 @@ function printResultsAsJson(&$reports) {
     $metricHeaders = $header->getMetricHeader()->getMetricHeaderEntries();
     $rows = $report->getData()->getRows();
     for ( $rowIndex = 0; $rowIndex < count($rows); $rowIndex++) {
-      print "{";
+      $result .= "{";
       $row = $rows[ $rowIndex ];
       $dimensions = $row->getDimensions();
       $metrics = $row->getMetrics();
@@ -91,9 +105,9 @@ function printResultsAsJson(&$reports) {
         // Remove heading title, only get title
         $value = str_replace("The Daily Pennsylvanian - | ", "", $dimensions[$i]);
         $value = str_replace("The Daily Pennsylvanian | ", "", $value);
-        print('"'.$dimensionHeaders[$i].'"'. ": " . '"'.$value.'",' . "\n");
+        $result .= '"'.$dimensionHeaders[$i].'"'. ": " . '"'.$value.'",' . "\n";
         if ($dimensionHeaders[$i] == 'ga:pagePath') {
-          print(getOpenGraphImg($value));
+          $result .= getOpenGraphImg($value);
         }
       }
 
@@ -102,13 +116,14 @@ function printResultsAsJson(&$reports) {
         $values = $metrics[$j];
         for ( $valueIndex = 0; $valueIndex < count( $values->getValues() ); $valueIndex++ ) {
           $value = $values->getValues()[ $valueIndex ];
-          print('"'.$entry->getName().'"' . ": " . '"'.$value.'"' . "\n");
+          $result .= '"'.$entry->getName().'"' . ": " . '"'.$value.'"' . "\n";
         }
       }
-      print $rowIndex == 9 ? "}" : "},\n";
+      $result .= $rowIndex == 9 ? "}" : "},\n";
     }
   }
-  print "]}";
+  $result .= "]}";
+  return $result;
 }
 
 function getOpenGraphImg($urlPath) {
