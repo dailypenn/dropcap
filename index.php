@@ -111,7 +111,7 @@ function resultsAsJson(&$reports) {
         // Remove heading title, only get title
         $value = str_replace("The Daily Pennsylvanian - | ", "", $dimensions[$i]);
         $value = str_replace("The Daily Pennsylvanian | ", "", $value);
-        $value = str_replace("\"", "'", $value);
+        $value = str_replace('"', "&quot;", $value);
         $result .= '"'.$dimensionHeaders[$i].'"'. ": " . '"'.$value.'",' . "\n";
         if ($dimensionHeaders[$i] == 'ga:pagePath') {
           $result .= getOpenGraphImg($value);
