@@ -4,7 +4,7 @@
 require_once __DIR__ . '/vendor/autoload.php';
 
 header("Content-Type: text/plain");
-header('Access-Control-Allow-Origin: *');  
+header('Access-Control-Allow-Origin: *');
 
 $analytics = initializeAnalytics();
 $result;
@@ -60,14 +60,14 @@ function getReport($analytics) {
   $pageViews = new Google_Service_AnalyticsReporting_Metric();
   $pageViews->setExpression("ga:pageViews");
   $pageViews->setAlias("pageViews");
-  
+
   //Create the Dimensions object.
   $pageTitle = new Google_Service_AnalyticsReporting_Dimension();
   $pageTitle->setName("ga:pageTitle");
 
   $pagePath = new Google_Service_AnalyticsReporting_Dimension();
   $pagePath->setName("ga:pagePath");
-  
+
   //ordering:
   // // Create the Dimensions object.
   $buckets = new Google_Service_AnalyticsReporting_Dimension();
@@ -76,7 +76,7 @@ function getReport($analytics) {
   // Create the Ordering.
   $ordering = new Google_Service_AnalyticsReporting_OrderBy();
   $ordering->setFieldName("ga:pageviews");
-  $ordering->setOrderType("VALUE");   
+  $ordering->setOrderType("VALUE");
   $ordering->setSortOrder("DESCENDING");
 
   // Create the ReportRequest object.
@@ -111,6 +111,7 @@ function resultsAsJson(&$reports) {
         // Remove heading title, only get title
         $value = str_replace("The Daily Pennsylvanian - | ", "", $dimensions[$i]);
         $value = str_replace("The Daily Pennsylvanian | ", "", $value);
+        $value = str_replace("\"", "'", $value);
         $result .= '"'.$dimensionHeaders[$i].'"'. ": " . '"'.$value.'",' . "\n";
         if ($dimensionHeaders[$i] == 'ga:pagePath') {
           $result .= getOpenGraphImg($value);
@@ -136,10 +137,10 @@ function getOpenGraphImg($urlPath) {
   $reader = new Opengraph\Reader();
   $reader->parse(file_get_contents("http://thedp.com".$urlPath));
   $ogTags = $reader->getArrayCopy();
-  
+
   $photoURL = $ogTags["og:image"][0]['og:image:url'];
   // Make sure we're getting the thumbnail.
   $photoURL = str_replace("f.", "t.", $photoURL);
-  
+
   return '"ogImage": "'.$photoURL.'",'."\n";
 }
