@@ -87,6 +87,8 @@ function getReport($analytics) {
   $request->setDimensions(array($pageTitle, $pagePath));
   $request->setOrderBys($ordering);
   $request->setFiltersExpression('ga:pagePathLevel1==/article/');
+  $request->setFiltersExpression('ga:pagePathLevel2==/'.date("Y").'/');
+  $request->setFiltersExpression('ga:pagePathLevel3==/'.date("m").'/');
   $request->setPageSize(10);
 
   $body = new Google_Service_AnalyticsReporting_GetReportsRequest();
@@ -111,7 +113,7 @@ function resultsAsJson(&$reports) {
         // Remove heading title, only get title
         $value = str_replace("The Daily Pennsylvanian - | ", "", $dimensions[$i]);
         $value = str_replace("The Daily Pennsylvanian | ", "", $value);
-        $value = str_replace('"', "&quot;", $value);
+        $value = htmlspecialchars($value);
         $result .= '"'.$dimensionHeaders[$i].'"'. ": " . '"'.$value.'",' . "\n";
         if ($dimensionHeaders[$i] == 'ga:pagePath') {
           $result .= getOpenGraphImg($value);
