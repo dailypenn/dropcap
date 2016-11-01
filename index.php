@@ -88,7 +88,7 @@ function getReport($analytics) {
   $request->setOrderBys($ordering);
   $request->setFiltersExpression('ga:pagePathLevel1==/article/');
   $request->setFiltersExpression('ga:pagePathLevel2==/'.date("Y").'/');
-  $request->setFiltersExpression('ga:pagePathLevel3==/'.date("m").'/');
+  $request->setFiltersExpression('ga:pagePathLevel3==/'.(date("m")-1).'/'.',ga:pagePathLevel3==/'.date("m").'/');
   $request->setPageSize(10);
 
   $body = new Google_Service_AnalyticsReporting_GetReportsRequest();
