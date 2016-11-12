@@ -2,6 +2,6 @@
     "require": {
         "google/apiclient": "^2.0",
         "euskadi31/opengraph": "^1.0",
-        "ext-memcached": "^2.2"
+        "ext-memcached": "*"
     }
 }
