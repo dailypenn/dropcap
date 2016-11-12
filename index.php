@@ -7,33 +7,33 @@ header("Content-Type: text/plain");
 header('Access-Control-Allow-Origin: *');  
 
 $analytics = initializeAnalytics();
-$result;
+$result = "";
 
 // Cache
 //// COMMENT OUT FROM HERE WHEN EDITING
-$mc = new Memcached();
-$mc->setOption(Memcached::OPT_BINARY_PROTOCOL, true);
-$mc->addServers(array_map(function($server) { return explode(':', $server, 2); }, explode(',', $_ENV['MEMCACHEDCLOUD_SERVERS'])));
-$mc->setSaslAuthData($_ENV['MEMCACHEDCLOUD_USERNAME'], $_ENV['MEMCACHEDCLOUD_PASSWORD']);
-
-$cached = $mc->get('topTenCache');
-
-if ($mc->getResultCode() == Memcached::RES_NOTFOUND) {
-  $response = getReport($analytics);
-  $jsonResult = resultsAsJson($response);
-  print $jsonResult;
-  // Expire in an hour
-  $mc->set('topTenCache', $jsonResult, time() + 3600);
-} else {
-  file_put_contents("php://stderr", "Retrieved contents from cache.\n");
-  print $cached;
-}
+// $mc = new Memcached();
+// $mc->setOption(Memcached::OPT_BINARY_PROTOCOL, true);
+// $mc->addServers(array_map(function($server) { return explode(':', $server, 2); }, explode(',', $_ENV['MEMCACHEDCLOUD_SERVERS'])));
+// $mc->setSaslAuthData($_ENV['MEMCACHEDCLOUD_USERNAME'], $_ENV['MEMCACHEDCLOUD_PASSWORD']);
+// 
+// $cached = $mc->get('topTenCache');
+// 
+// if ($mc->getResultCode() == Memcached::RES_NOTFOUND) {
+//   $response = getReport($analytics);
+//   $jsonResult = resultsAsJson($response);
+//   print $jsonResult;
+//   // Expire in an hour
+//   $mc->set('topTenCache', $jsonResult, time() + 3600);
+// } else {
+//   file_put_contents("php://stderr", "Retrieved contents from cache.\n");
+//   print $cached;
+// }
 // COMMENT OUT TO HERE WHEN EDITING
 
 //UNCOMMENT OUT THESE LINES IF EDITING: 
-// $response = getReport($analytics);
-// $jsonResult = resultsAsJson($response);
-// print $jsonResult;
+$response = getReport($analytics);
+$jsonResult = resultsAsJson($response);
+print $jsonResult;
 
 function initializeAnalytics()
 {
@@ -94,7 +94,7 @@ function getReport($analytics) {
   $request->setDimensions(array($pageTitle, $pagePath));
   $request->setOrderBys($ordering);
   $request->setFiltersExpression('ga:pagePathLevel1==/article/');
-  $request->setPageSize(10);
+  $request->setPageSize(20); // Retrieve 20 elements to leave room for deduping
 
   $body = new Google_Service_AnalyticsReporting_GetReportsRequest();
   $body->setReportRequests( array( $request) );
@@ -108,7 +108,7 @@ function resultsAsJson(&$reports) {
   $dimensionHeaders = $header->getDimensions();
   $metricHeaders = $header->getMetricHeader()->getMetricHeaderEntries();
   $rows = $GAreport->getData()->getRows();
-  // print_r($rows);
+  $rows = deduplicatePaths($rows);
   for ( $rowIndex = 0; $rowIndex < count($rows); $rowIndex++) {
     $result .= "{";
     $row = $rows[ $rowIndex ];
@@ -138,8 +138,24 @@ function resultsAsJson(&$reports) {
   return $result;
 }
 
-function deduplicatePaths($test) {
-  
+function deduplicatePaths($ga_data) {
+  $deduped_data = []; // Deduplicated data with no duplicate URLS
+  $added_urls = []; // 1D array to keep track of urls in deduped_data
+  for ($rowIndex = 0; $rowIndex < count($ga_data); $rowIndex++) {
+    // If we have 10 entries, just return
+    if (count($deduped_data) == 10) {
+      return $deduped_data;
+    }
+    $row = $ga_data[ $rowIndex ];
+    $curr_url = $row->getDimensions()[1];
+
+    if (!in_array($curr_url, $added_urls)) {
+      // If the current URL isn't in added urls, push the data on to 2d array
+      array_push($added_urls, $curr_url);
+      array_push($deduped_data, $row);
+    }
+  }
+  return $deduped_data;
 }
 
 function getOpenGraphImg($urlPath) {
