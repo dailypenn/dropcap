@@ -10,6 +10,7 @@ $analytics = initializeAnalytics();
 $result;
 
 // Cache
+//// COMMENT OUT FROM HERE WHEN EDITING
 $mc = new Memcached();
 $mc->setOption(Memcached::OPT_BINARY_PROTOCOL, true);
 $mc->addServers(array_map(function($server) { return explode(':', $server, 2); }, explode(',', $_ENV['MEMCACHEDCLOUD_SERVERS'])));
@@ -27,6 +28,12 @@ if ($mc->getResultCode() == Memcached::RES_NOTFOUND) {
   file_put_contents("php://stderr", "Retrieved contents from cache.\n");
   print $cached;
 }
+// COMMENT OUT TO HERE WHEN EDITING
+
+//UNCOMMENT OUT THESE LINES IF EDITING: 
+// $response = getReport($analytics);
+// $jsonResult = resultsAsJson($response);
+// print $jsonResult;
 
 function initializeAnalytics()
 {
@@ -96,40 +103,43 @@ function getReport($analytics) {
 
 function resultsAsJson(&$reports) {
   $result .= '{ "topTen" : [';
-  for ( $reportIndex = 0; $reportIndex < count( $reports ); $reportIndex++ ) {
-    $report = $reports[ $reportIndex ];
-    $header = $report->getColumnHeader();
-    $dimensionHeaders = $header->getDimensions();
-    $metricHeaders = $header->getMetricHeader()->getMetricHeaderEntries();
-    $rows = $report->getData()->getRows();
-    for ( $rowIndex = 0; $rowIndex < count($rows); $rowIndex++) {
-      $result .= "{";
-      $row = $rows[ $rowIndex ];
-      $dimensions = $row->getDimensions();
-      $metrics = $row->getMetrics();
-      for ($i = 0; $i < count($dimensionHeaders) && $i < count($dimensions); $i++) {
-        // Remove heading title, only get title
-        $value = str_replace("The Daily Pennsylvanian - | ", "", $dimensions[$i]);
-        $value = str_replace("The Daily Pennsylvanian | ", "", $value);
-        $result .= '"'.$dimensionHeaders[$i].'"'. ": " . '"'.$value.'",' . "\n";
-        if ($dimensionHeaders[$i] == 'ga:pagePath') {
-          $result .= getOpenGraphImg($value);
-        }
+  $GAreport = $reports[0];
+  $header = $GAreport->getColumnHeader();
+  $dimensionHeaders = $header->getDimensions();
+  $metricHeaders = $header->getMetricHeader()->getMetricHeaderEntries();
+  $rows = $GAreport->getData()->getRows();
+  // print_r($rows);
+  for ( $rowIndex = 0; $rowIndex < count($rows); $rowIndex++) {
+    $result .= "{";
+    $row = $rows[ $rowIndex ];
+    $dimensions = $row->getDimensions();
+    $metrics = $row->getMetrics();
+    for ($i = 0; $i < count($dimensionHeaders) && $i < count($dimensions); $i++) {
+      // Remove heading title, only get title
+      $value = str_replace("The Daily Pennsylvanian - | ", "", $dimensions[$i]);
+      $value = str_replace("The Daily Pennsylvanian | ", "", $value);
+      $result .= '"'.$dimensionHeaders[$i].'"'. ": " . '"'.$value.'",' . "\n";
+      if ($dimensionHeaders[$i] == 'ga:pagePath') {
+        $result .= getOpenGraphImg($value);
       }
-
-      for ($j = 0; $j < count( $metricHeaders ) && $j < count( $metrics ); $j++) {
-        $entry = $metricHeaders[$j];
-        $values = $metrics[$j];
-        for ( $valueIndex = 0; $valueIndex < count( $values->getValues() ); $valueIndex++ ) {
-          $value = $values->getValues()[ $valueIndex ];
-          $result .= '"'.$entry->getName().'"' . ": " . '"'.$value.'"' . "\n";
-        }
-      }
-      $result .= $rowIndex == 9 ? "}" : "},\n";
     }
+
+    for ($j = 0; $j < count( $metricHeaders ) && $j < count( $metrics ); $j++) {
+      $entry = $metricHeaders[$j];
+      $values = $metrics[$j];
+      for ( $valueIndex = 0; $valueIndex < count( $values->getValues() ); $valueIndex++ ) {
+        $value = $values->getValues()[ $valueIndex ];
+        $result .= '"'.$entry->getName().'"' . ": " . '"'.$value.'"' . "\n";
+      }
+    }
+    $result .= $rowIndex == 9 ? "}" : "},\n";
   }
   $result .= "]}";
   return $result;
+}
+
+function deduplicatePaths($test) {
+  
 }
 
 function getOpenGraphImg($urlPath) {
