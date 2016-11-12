@@ -94,13 +94,9 @@ function getReport($analytics) {
   $request->setDimensions(array($pageTitle, $pagePath));
   $request->setOrderBys($ordering);
   $request->setFiltersExpression('ga:pagePathLevel1==/article/');
-<<<<<<< HEAD
-  $request->setPageSize(20); // Retrieve 20 elements to leave room for deduping
-=======
   $request->setFiltersExpression('ga:pagePathLevel2==/'.date("Y").'/');
   $request->setFiltersExpression('ga:pagePathLevel3==/'.(date("m")-1).'/'.',ga:pagePathLevel3==/'.date("m").'/');
-  $request->setPageSize(10);
->>>>>>> 9d0849a156fc481a573c04837043cd6426764860
+  $request->setPageSize(20);
 
   $body = new Google_Service_AnalyticsReporting_GetReportsRequest();
   $body->setReportRequests( array( $request) );
@@ -121,13 +117,14 @@ function resultsAsJson(&$reports) {
     $dimensions = $row->getDimensions();
     $metrics = $row->getMetrics();
     for ($i = 0; $i < count($dimensionHeaders) && $i < count($dimensions); $i++) {
+      
       // Remove heading title, only get title
       $value = str_replace("The Daily Pennsylvanian - | ", "", $dimensions[$i]);
       $value = str_replace("The Daily Pennsylvanian | ", "", $value);
       $value = htmlspecialchars($value);
       $result .= '"'.$dimensionHeaders[$i].'"'. ": " . '"'.$value.'",' . "\n";
       if ($dimensionHeaders[$i] == 'ga:pagePath') {
-        $result .= getOpenGraphImg($value);
+        $result .= getOpenGraphTags($value);
       }
     }
 
@@ -165,12 +162,15 @@ function deduplicatePaths($ga_data) {
   return $deduped_data;
 }
 
-function getOpenGraphImg($urlPath) {
+function getOpenGraphTags($urlPath) {
   $reader = new Opengraph\Reader();
   $reader->parse(file_get_contents("http://thedp.com".$urlPath));
   $ogTags = $reader->getArrayCopy();
+  // Get og title and photo url
+  $ogTitle = $ogTags["og:title"];
   $photoURL = $ogTags["og:image"][0]['og:image:url'];
   // Make sure we're getting the thumbnail.
   $photoURL = str_replace("f.", "t.", $photoURL);
-  return '"ogImage": "'.$photoURL.'",'."\n";
+  // Return the string to append to the JSON. Be careful with quotes
+  return '"og:title": "'.$ogTitle.'",'."\n".'"ogImage": "'.$photoURL.'",'."\n";
 }
