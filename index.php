@@ -10,30 +10,30 @@ $analytics = initializeAnalytics();
 $result = "";
 
 // Cache
-//// COMMENT OUT FROM HERE WHEN EDITING
-// $mc = new Memcached();
-// $mc->setOption(Memcached::OPT_BINARY_PROTOCOL, true);
-// $mc->addServers(array_map(function($server) { return explode(':', $server, 2); }, explode(',', $_ENV['MEMCACHEDCLOUD_SERVERS'])));
-// $mc->setSaslAuthData($_ENV['MEMCACHEDCLOUD_USERNAME'], $_ENV['MEMCACHEDCLOUD_PASSWORD']);
-// 
-// $cached = $mc->get('topTenCache');
-// 
-// if ($mc->getResultCode() == Memcached::RES_NOTFOUND) {
-//   $response = getReport($analytics);
-//   $jsonResult = resultsAsJson($response);
-//   print $jsonResult;
-//   // Expire in an hour
-//   $mc->set('topTenCache', $jsonResult, time() + 3600);
-// } else {
-//   file_put_contents("php://stderr", "Retrieved contents from cache.\n");
-//   print $cached;
-// }
-// COMMENT OUT TO HERE WHEN EDITING
+//////// COMMENT OUT FROM HERE WHEN EDITING LOCALLY ////////
+$mc = new Memcached();
+$mc->setOption(Memcached::OPT_BINARY_PROTOCOL, true);
+$mc->addServers(array_map(function($server) { return explode(':', $server, 2); }, explode(',', $_ENV['MEMCACHEDCLOUD_SERVERS'])));
+$mc->setSaslAuthData($_ENV['MEMCACHEDCLOUD_USERNAME'], $_ENV['MEMCACHEDCLOUD_PASSWORD']);
 
-//UNCOMMENT OUT THESE LINES IF EDITING: 
-$response = getReport($analytics);
-$jsonResult = resultsAsJson($response);
-print $jsonResult;
+$cached = $mc->get('topTenCache');
+
+if ($mc->getResultCode() == Memcached::RES_NOTFOUND) {
+  $response = getReport($analytics);
+  $jsonResult = resultsAsJson($response);
+  print $jsonResult;
+  // Expire in an hour
+  $mc->set('topTenCache', $jsonResult, time() + 3600);
+} else {
+  file_put_contents("php://stderr", "Retrieved contents from cache.\n");
+  print $cached;
+}
+//////// COMMENT OUT TO HERE WHEN EDITING ////////
+
+//////// UNCOMMENT OUT THESE LINES IF EDITING LOCALLY //////////
+// $response = getReport($analytics);
+// $jsonResult = resultsAsJson($response);
+// print $jsonResult;
 
 function initializeAnalytics()
 {
@@ -76,7 +76,7 @@ function getReport($analytics) {
   $pagePath->setName("ga:pagePath");
 
   //ordering:
-  // // Create the Dimensions object.
+  // Create the Dimensions object.
   $buckets = new Google_Service_AnalyticsReporting_Dimension();
   $buckets->setName("ga:pageViews");
 
