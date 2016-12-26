@@ -1,6 +1,9 @@
-var google = require('googleapis');
-var date = require('dateTools');
-
+var google     = require('googleapis');
+var date       = require('./dateTools');
+var Promise = require('promise');
+var ApiBuilder = require('claudia-api-builder');
+var api        = new ApiBuilder();
+  
 var key = {
   "type": "service_account",
   "project_id": "dailypenn-web-top10",
@@ -18,34 +21,44 @@ var DP_VIEW_ID = 'ga:22050415';
 
 var jwtClient = new google.auth.JWT(key.client_email, null, key.private_key, ['https://www.googleapis.com/auth/analytics.readonly'], null);
 
-jwtClient.authorize(function (err, tokens) {
-  if (err) {
-    console.log(err);
-    return;
-  }
-  var analytics = google.analytics('v3');
-  queryTopTen(analytics);
-});
-
 function queryTopTen(analytics) {
   var year = new Date().getFullYear();
-  var month = new Date().getFullYear()
-  analytics.data.ga.get({
-    'auth': jwtClient,
-    'ids': DP_VIEW_ID,
-    'metrics': 'ga:pageViews',
-    'dimensions': 'ga:pageTitle,ga:pagePath',
-    'start-date': '7daysAgo',
-    'end-date': 'today',
-    'sort': '-ga:pageViews',
-    'max-results': 20,
-    'filters': 'ga:pagePathLevel1==/article/'
-  }, function (err, response) {
-    if (err) {
-      console.log("ERROR: ");
-      console.log(err);
-      return;
-    }
-    console.log(JSON.stringify(response, null, 2));
+  var month = new Date().getFullYear();
+  
+  return new Promise(function (fulfill, reject){
+    analytics.data.ga.get({
+      'auth': jwtClient,
+      'ids': DP_VIEW_ID,
+      'metrics': 'ga:pageViews',
+      'dimensions': 'ga:pageTitle,ga:pagePath',
+      'start-date': '7daysAgo',
+      'end-date': 'today',
+      'sort': '-ga:pageViews',
+      'max-results': 20,
+      'filters': 'ga:pagePathLevel1==/article/'
+    }, function (err, response) {
+      if (err) {
+        console.log("ERROR: ");
+        console.log(err);
+        reject(err);
+      }
+      fulfill(response);
+    });
   });
-}
+} 
+
+// API Endpoints
+api.get('/', function () {
+  return new Promise(function (fulfill, reject){
+    jwtClient.authorize(function (err, tokens) {
+      if (err) {
+        console.log(err);
+        reject(err);
+      }
+      var analytics = google.analytics('v3');
+      fulfill(queryTopTen(analytics));
+    });
+  });
+});
+
+module.exports = api;
