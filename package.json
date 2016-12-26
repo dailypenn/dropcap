@@ -1,0 +1,15 @@
+{
+  "name": "dropcap",
+  "version": "1.0.0",
+  "description": "Lambda functions to generate top ten articles from Google Analytics",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Andrew Fischer",
+  "license": "ISC",
+  "dependencies": {
+    "claudia-api-builder": "^2.3.1",
+    "googleapis": "^15.0.0"
+  }
+}
