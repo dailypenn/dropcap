@@ -12,5 +12,11 @@
     "claudia-api-builder": "^2.3.1",
     "googleapis": "^15.0.0",
     "promise": "^7.1.1"
+  },
+  "devDependencies": {
+    "eslint": "^3.12.2",
+    "eslint-config-standard": "^6.2.1",
+    "eslint-plugin-promise": "^3.4.0",
+    "eslint-plugin-standard": "^2.0.1"
   }
 }
