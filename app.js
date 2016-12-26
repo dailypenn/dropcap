@@ -22,10 +22,7 @@ var DP_VIEW_ID = 'ga:22050415';
 var jwtClient = new google.auth.JWT(key.client_email, null, key.private_key, ['https://www.googleapis.com/auth/analytics.readonly'], null);
 
 function queryTopTen(analytics) {
-  var year = new Date().getFullYear();
-  var month = new Date().getFullYear();
-  
-  return new Promise(function (fulfill, reject){
+  return new Promise(function (fulfill, reject) {
     analytics.data.ga.get({
       'auth': jwtClient,
       'ids': DP_VIEW_ID,
@@ -35,13 +32,14 @@ function queryTopTen(analytics) {
       'end-date': 'today',
       'sort': '-ga:pageViews',
       'max-results': 20,
-      'filters': 'ga:pagePathLevel1==/article/'
+      'filters': 'ga:pagePathLevel1==/article/,' + date.get2ndLvlPagePaths() + ',' + date.get3rdLvlPagePaths()
     }, function (err, response) {
       if (err) {
         console.log("ERROR: ");
         console.log(err);
         reject(err);
       }
+      console.log(response);
       fulfill(response);
     });
   });
