@@ -4,7 +4,9 @@
   "description": "Lambda functions to generate top ten articles from Google Analytics",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "create": "claudia create --region us-east-1 --api-module app",
+    "deploy" : "claudia update",
+    "test": "node test.js"
   },
   "author": "Andrew Fischer",
   "license": "ISC",

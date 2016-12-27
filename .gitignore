@@ -1,6 +1,3 @@
-
-# Created by https://www.gitignore.io/api/macos,windows,node,sublimetext,vim,emacs
-
 ### macOS ###
 *.DS_Store
 .AppleDouble
@@ -189,5 +186,3 @@ flycheck_*.el
 
 # directory configuration
 .dir-locals.el
-
-# End of https://www.gitignore.io/api/macos,windows,node,sublimetext,vim,emacs
