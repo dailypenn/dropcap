@@ -34,7 +34,7 @@ function queryTopArticles(analytics, maxResults) {
       }
       if (data) {
         // return from memcached
-        return resolve(data);
+      //  return resolve(data);
       }
 
       // Otherwise get data
@@ -93,7 +93,7 @@ var lintGAResults = function(urlList) {
 }
 
 var htmlEscape = function(str) {
-  return str.replace(/[\x26\x0A<>'"]/g, function(str) {
+  return str.replace(/[\x26\x0A<>'"—]/g, function(str) {
     return '&#' + str.charCodeAt(0) + ';'
   });
 }
