@@ -21,7 +21,7 @@ var DP_VIEW_ID = 'ga:22050415';
 
 var jwtClient = new google.auth.JWT(key.client_email, null, key.private_key, ['https://www.googleapis.com/auth/analytics.readonly'], null);
 
-function queryTopTen(analytics) {
+function queryTopArticles(analytics, maxResults) {
   return new Promise(function (resolve, reject) {
     analytics.data.ga.get({
       'auth': jwtClient,
@@ -31,16 +31,48 @@ function queryTopTen(analytics) {
       'start-date': '7daysAgo',
       'end-date': 'today',
       'sort': '-ga:pageViews',
-      'max-results': 20,
-      'filters': 'ga:pagePathLevel1==/article/,' + date.get2ndLvlPagePaths() + ',' + date.get3rdLvlPagePaths()
+      'max-results': maxResults * 2, // get 2x max results to remove dupes
+      'filters': 'ga:pagePathLevel1==/article/;' + date.get2ndLvlPagePaths() + ';' + date.get3rdLvlPagePaths()
     }, function (err, response) {
       if (err) {
         console.log(err);
         reject(err);
       }
-      console.log(response);
-      resolve(response);
+      var topList = lintGAResults(response.rows);
+      topList = topList.slice(0, maxResults - 1);
+      // topList = JSON.stringify(topList, null, 2);
+      resolve(topList);
     });
+  });
+}
+
+var lintGAResults = function(urlList) {
+  var result = [];
+  var usedURLs = [];
+  // console.log(urlList);
+  for (var item in urlList) {
+    var urlItem = urlList[item];
+    var url = urlItem[1];       // get URL from list item
+    if (url.includes('?')) {    // remove query string
+      url = url.split('?')[0];
+    }
+    // remove leading title
+    urlItem[0] = urlItem[0].replace('The Daily Pennsylvanian | ', '');
+    if (!usedURLs.indexOf(url) > -1) {
+      result.push({
+        'title': htmlEscape(urlItem[0]),
+        'path': urlItem[1],
+        'views': urlItem[2]
+      });
+      usedURLs.push(url);
+    }
+  }
+  return result;
+}
+
+var htmlEscape = function(str) {
+  return str.replace(/[\x26\x0A<>'"]/g, function(str) {
+    return '&#' + str.charCodeAt(0) + ';'
   });
 }
 
@@ -49,11 +81,11 @@ api.get('/', function () {
   return new Promise(function (resolve, reject) {
     jwtClient.authorize(function (err, tokens) {
       if (err) {
-        console.log(err);
+        console.error(err);
         reject(err);
       }
       var analytics = google.analytics('v3');
-      resolve(queryTopTen(analytics));
+      resolve(queryTopArticles(analytics, 10));
     });
   });
 });
