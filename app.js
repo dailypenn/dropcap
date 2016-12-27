@@ -1,6 +1,7 @@
 var google     = require('googleapis');
 var date       = require('./dateTools');
 var Promise    = require('promise');
+var Memcached  = require('memcached');
 var ApiBuilder = require('claudia-api-builder');
 var api        = new ApiBuilder();
 
@@ -21,27 +22,48 @@ var DP_VIEW_ID = 'ga:22050415';
 
 var jwtClient = new google.auth.JWT(key.client_email, null, key.private_key, ['https://www.googleapis.com/auth/analytics.readonly'], null);
 
+var memcached = new Memcached('pub-memcache-10791.us-east-1-2.5.ec2.garantiadata.com:10791');
+
 function queryTopArticles(analytics, maxResults) {
   return new Promise(function (resolve, reject) {
-    analytics.data.ga.get({
-      'auth': jwtClient,
-      'ids': DP_VIEW_ID,
-      'metrics': 'ga:pageViews',
-      'dimensions': 'ga:pageTitle,ga:pagePath',
-      'start-date': '7daysAgo',
-      'end-date': 'today',
-      'sort': '-ga:pageViews',
-      'max-results': maxResults * 2, // get 2x max results to remove dupes
-      'filters': 'ga:pagePathLevel1==/article/;' + date.get2ndLvlPagePaths() + ';' + date.get3rdLvlPagePaths()
-    }, function (err, response) {
+    // check cache first
+    memcached.get('topArticles', function(err, data) {
       if (err) {
-        console.log(err);
+        console.error(err);
         reject(err);
       }
-      var topList = lintGAResults(response.rows);
-      topList = topList.slice(0, maxResults - 1);
-      // topList = JSON.stringify(topList, null, 2);
-      resolve(topList);
+      if (data) {
+        // return from memcached
+        return resolve(data);
+      }
+
+      // Otherwise get data
+      analytics.data.ga.get({
+        'auth': jwtClient,
+        'ids': DP_VIEW_ID,
+        'metrics': 'ga:pageViews',
+        'dimensions': 'ga:pageTitle,ga:pagePath',
+        'start-date': '7daysAgo',
+        'end-date': 'today',
+        'sort': '-ga:pageViews',
+        'max-results': maxResults * 2, // get 2x max results to remove dupes
+        'filters': 'ga:pagePathLevel1==/article/;' + date.get2ndLvlPagePaths() + ';' + date.get3rdLvlPagePaths()
+      }, function (err, response) {
+        if (err) {
+          console.error('error getting analytics: ' + err);
+          reject(err);
+        }
+        var topList = lintGAResults(response.rows);
+        topList = topList.slice(0, maxResults - 1);
+        topList = {'result': topList};
+
+        // Set cache and resolve promise
+        memcached.set('topArticles', topList, 3600, function(err) {
+          if (err) { console.error(err) };
+        });
+
+        resolve(topList);
+      });
     });
   });
 }
@@ -49,7 +71,7 @@ function queryTopArticles(analytics, maxResults) {
 var lintGAResults = function(urlList) {
   var result = [];
   var usedURLs = [];
-  // console.log(urlList);
+
   for (var item in urlList) {
     var urlItem = urlList[item];
     var url = urlItem[1];       // get URL from list item

@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "create": "claudia create --region us-east-1 --api-module app",
-    "deploy" : "claudia update",
+    "deploy": "claudia update",
     "test": "node test.js"
   },
   "author": "Andrew Fischer",
@@ -13,6 +13,7 @@
   "dependencies": {
     "claudia-api-builder": "^2.3.1",
     "googleapis": "^15.0.0",
+    "memcached": "^2.2.2",
     "promise": "^7.1.1"
   },
   "devDependencies": {

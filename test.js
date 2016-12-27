@@ -9,11 +9,12 @@ var apiRequest = {
 };
 
 lambdaContextSpy = {
-    done: function(err, result) {
-        console.log('Context done');
-        console.log('  error: ', err);
-        console.log(' result: ', JSON.stringify(result, null, 4));
+  done: function(err, result) {
+    if (err) {
+      console.log('  error: ', err);
     }
+    console.log(result);
+  }
 };
 
 
