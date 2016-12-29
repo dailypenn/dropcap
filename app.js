@@ -37,7 +37,7 @@ function queryTopArticles(analytics, maxResults) {
       }
       if (data) {
         // return from memcached
-    //    return resolve(data); // Comment out when developing to avoid using cached data
+        // return resolve(data); // Comment out when developing to avoid using cached data
       }
 
       // Otherwise get data
@@ -56,61 +56,70 @@ function queryTopArticles(analytics, maxResults) {
           console.error('error getting analytics: ' + err);
           reject(err);
         }
-        var topList = lintGAResults(response.rows);
-        topList = topList.slice(0, maxResults - 1);
-        topList = {'result': topList};
 
-        // Set cache and resolve promise
-        memcached.set('topArticles', topList, 3600, function(err) {
-          if (err) { console.error(err) };
-        });
-
-        resolve(topList);
+        resolve(lintGAResults(response.rows));
       });
     });
   });
 }
 
 var lintGAResults = function(urlList) {
-  var result = [];
-  var usedURLs = [];
+  return new Promise(function(resolve, reject) {
+    var result = [];
+    var usedURLs = [];
 
-  for (var item in urlList) {
-    var urlItem = urlList[item];
-    var url = urlItem[1];       // get URL from list item
-    if (url.includes('?')) {    // remove query string
-      url = url.split('?')[0];
+    for (var item in urlList) {
+      var urlItem = urlList[item];
+      var url = urlItem[1];       // get URL from list item
+      if (url.includes('?')) {    // remove query string
+        url = url.split('?')[0];
+      }
+      // remove leading title
+      urlItem[0] = urlItem[0].replace('The Daily Pennsylvanian | ', '');
+
+      if (usedURLs.indexOf(url) < 0) { // not in usedURLs
+        var fullURL = `http://www.thedp.com${url}`;
+        mergeOGData(fullURL, urlItem).then(function(data) {
+          result.push(data);
+          usedURLs.push(url);
+
+          // Check for done conditions
+          if (result.length === urlList.length) {
+            result = result.slice(0, 10 - 1); // TODO: Make max results
+            result = {'result': result};
+            // Set cache and resolve promise
+
+            memcached.set('topArticles', result, 3600, function(err) {
+              if (err) { console.error(err) };
+            });
+
+            return resolve(result);
+          }
+        }, function(err) {
+          console.error('error getting OG tags');
+          reject(err);
+        })
+      }
     }
-    // remove leading title
-    urlItem[0] = urlItem[0].replace('The Daily Pennsylvanian | ', '');
-    if (usedURLs.indexOf(url) < 0) { // not in usedURLs
-      var fullURL = `http://www.thedp.com${url}`;
-      getOGTags(fullURL)
-      result.push({
-        'title': util.htmlEscape(urlItem[0]),
-        'path': urlItem[1],
-        'views': urlItem[2],
-        'og': 'foo'
-      });
-      usedURLs.push(url);
-    }
-  }
-  return result;
+  });
 }
 
-var getOGTags = function(canonicalURL) {
+var mergeOGData = function(canonicalURL, urlData) {
+  console.log('GETTING OG FOR ', canonicalURL);
   return new Promise(function (resolve, reject) {
     openGraph({url: canonicalURL, timeout: 9000}, function (err, results) {
       if (err) {
         console.error('error getting opengraph:', results);
         reject(results);
       }
-      var og = {
-        'image': results.data.ogImage.url,
-        'title': util.htmlEscape(results.data.ogTitle)
+      var res = {
+        'gaTitle': util.htmlEscape(urlData[0]),
+        'ogTitle': util.htmlEscape(results.data.ogTitle),
+        'path': urlData[1],
+        'views': urlData[2],
+        'image': results.data.ogImage.url
       }
-      console.log(og);
-      resolve(og);
+      resolve(res);
     });
   });
 }
@@ -124,7 +133,7 @@ api.get('/', function () {
         reject(err);
       }
       var analytics = google.analytics('v3');
-      resolve(queryTopArticles(analytics, 10));
+      return resolve(queryTopArticles(analytics, 10));
     });
   });
 });
