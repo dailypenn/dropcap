@@ -31,7 +31,14 @@ var get3rdLvlPagePaths = function() {
   return `ga:pagePathLevel3==/${lastMonth}/,ga:pagePathLevel3==/${thisMonth}/`
 }
 
+var htmlEscape = function(str) {
+  return str.replace(/[\x26\x0A<>'"—]/g, function(str) {
+    return '&#' + str.charCodeAt(0) + ';'
+  });
+}
+
 module.exports = {
   get2ndLvlPagePaths: get2ndLvlPagePaths,
-  get3rdLvlPagePaths: get3rdLvlPagePaths
+  get3rdLvlPagePaths: get3rdLvlPagePaths,
+  htmlEscape: htmlEscape
 }

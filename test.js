@@ -1,6 +1,5 @@
 var api = require('./app.js');
 
-
 var apiRequest = {
   requestContext: {
     resourcePath: '/',
@@ -8,14 +7,13 @@ var apiRequest = {
   }
 };
 
-lambdaContextSpy = {
+var lambdaContextSpy = {
   done: function(err, result) {
     if (err) {
       console.log('  error: ', err);
     }
-    console.log(result);
+    console.log(JSON.parse(result.body, null, 2));
   }
 };
-
 
 api.proxyRouter(apiRequest, lambdaContextSpy);

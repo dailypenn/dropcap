@@ -1,10 +1,12 @@
+// Requires
 var google     = require('googleapis');
-var date       = require('./dateTools');
+var util       = require('./util');
 var Promise    = require('promise');
 var Memcached  = require('memcached');
 var ApiBuilder = require('claudia-api-builder');
-var api        = new ApiBuilder();
+var openGraph  = require('open-graph-scraper');
 
+// Authentication Credentials
 var key = {
   'type': 'service_account',
   'project_id': 'dailypenn-web-top10',
@@ -18,11 +20,12 @@ var key = {
   'client_x509_cert_url': 'https://www.googleapis.com/robot/v1/metadata/x509/dp-top10%40dailypenn-web-top10.iam.gserviceaccount.com'
 };
 
-var DP_VIEW_ID = 'ga:22050415';
-
+// Globals
+var api        = new ApiBuilder();
+var memcached  = new Memcached('pub-memcache-10791.us-east-1-2.5.ec2.garantiadata.com:10791');
 var jwtClient = new google.auth.JWT(key.client_email, null, key.private_key, ['https://www.googleapis.com/auth/analytics.readonly'], null);
 
-var memcached = new Memcached('pub-memcache-10791.us-east-1-2.5.ec2.garantiadata.com:10791');
+var DP_VIEW_ID = 'ga:22050415';
 
 function queryTopArticles(analytics, maxResults) {
   return new Promise(function (resolve, reject) {
@@ -34,7 +37,7 @@ function queryTopArticles(analytics, maxResults) {
       }
       if (data) {
         // return from memcached
-      //  return resolve(data);
+    //    return resolve(data); // Comment out when developing to avoid using cached data
       }
 
       // Otherwise get data
@@ -47,7 +50,7 @@ function queryTopArticles(analytics, maxResults) {
         'end-date': 'today',
         'sort': '-ga:pageViews',
         'max-results': maxResults * 2, // get 2x max results to remove dupes
-        'filters': 'ga:pagePathLevel1==/article/;' + date.get2ndLvlPagePaths() + ';' + date.get3rdLvlPagePaths()
+        'filters': 'ga:pagePathLevel1==/article/;' + util.get2ndLvlPagePaths() + ';' + util.get3rdLvlPagePaths()
       }, function (err, response) {
         if (err) {
           console.error('error getting analytics: ' + err);
@@ -80,11 +83,14 @@ var lintGAResults = function(urlList) {
     }
     // remove leading title
     urlItem[0] = urlItem[0].replace('The Daily Pennsylvanian | ', '');
-    if (!usedURLs.indexOf(url) > -1) {
+    if (usedURLs.indexOf(url) < 0) { // not in usedURLs
+      var fullURL = `http://www.thedp.com${url}`;
+      getOGTags(fullURL)
       result.push({
-        'title': htmlEscape(urlItem[0]),
+        'title': util.htmlEscape(urlItem[0]),
         'path': urlItem[1],
-        'views': urlItem[2]
+        'views': urlItem[2],
+        'og': 'foo'
       });
       usedURLs.push(url);
     }
@@ -92,9 +98,20 @@ var lintGAResults = function(urlList) {
   return result;
 }
 
-var htmlEscape = function(str) {
-  return str.replace(/[\x26\x0A<>'"—]/g, function(str) {
-    return '&#' + str.charCodeAt(0) + ';'
+var getOGTags = function(canonicalURL) {
+  return new Promise(function (resolve, reject) {
+    openGraph({url: canonicalURL, timeout: 9000}, function (err, results) {
+      if (err) {
+        console.error('error getting opengraph:', results);
+        reject(results);
+      }
+      var og = {
+        'image': results.data.ogImage.url,
+        'title': util.htmlEscape(results.data.ogTitle)
+      }
+      console.log(og);
+      resolve(og);
+    });
   });
 }
 
@@ -103,7 +120,7 @@ api.get('/', function () {
   return new Promise(function (resolve, reject) {
     jwtClient.authorize(function (err, tokens) {
       if (err) {
-        console.error(err);
+        console.error('error generating jwt token', err);
         reject(err);
       }
       var analytics = google.analytics('v3');
