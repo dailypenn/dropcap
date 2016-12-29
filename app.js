@@ -37,9 +37,8 @@ function queryTopArticles(analytics, maxResults) {
       }
       if (data) {
         // return from memcached
-        // return resolve(data); // Comment out when developing to avoid using cached data
+        return resolve(data); // Comment out when developing to avoid using cached data
       }
-
       // Otherwise get data
       analytics.data.ga.get({
         'auth': jwtClient,
@@ -58,7 +57,7 @@ function queryTopArticles(analytics, maxResults) {
         }
 
         var topURLs = util.combineAndStripURLs(response.rows, maxResults);
-        resolve(urlDataAsJSON(topURLs));
+        return resolve(urlDataAsJSON(topURLs));
       });
     });
   });
@@ -81,7 +80,7 @@ var urlDataAsJSON = function(urlList) {
         // Check for done conditions
         if (result.length === urlList.length) {
           result.sort(function(o1, o2) {
-            return o1.views - o2.views;
+            return o2.views - o1.views;
           })
           result = {'result': result};
 
