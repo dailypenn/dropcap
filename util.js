@@ -37,8 +37,37 @@ var htmlEscape = function(str) {
   });
 }
 
+var removeQueryStr = function(url) {
+  if (url.includes('?')) {    // remove query string
+    return url.split('?')[0];
+  }
+  return url;
+}
+
+// This is an ugly function and will run poorly over large data sets (it's
+// O(n^2) and shouldn't be run often.
+var combineAndStripURLs = function(urlList, maxResults) {
+  var combined = [];
+  for (var item in urlList) {
+    // remove query string
+    urlList[item][1] = removeQueryStr(urlList[item][1]);
+
+    // Check for duplicates
+    for (var parsedItem in combined) {
+      if (parsedItem[1] === item[1]) { // found Dupe
+        parsedItem[1] += item[1];
+        break;
+      }
+    }
+    combined.push(urlList[item]);
+  }
+  return combined.slice(0, maxResults);
+}
+
 module.exports = {
   get2ndLvlPagePaths: get2ndLvlPagePaths,
   get3rdLvlPagePaths: get3rdLvlPagePaths,
-  htmlEscape: htmlEscape
+  htmlEscape: htmlEscape,
+  removeQueryStr: removeQueryStr,
+  combineAndStripURLs: combineAndStripURLs
 }

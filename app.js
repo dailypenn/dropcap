@@ -57,23 +57,23 @@ function queryTopArticles(analytics, maxResults) {
           reject(err);
         }
 
-        resolve(lintGAResults(response.rows));
+        var topURLs = util.combineAndStripURLs(response.rows, maxResults);
+        console.log(topURLs);
+        resolve(urlDataAsJSON(topURLs));
       });
     });
   });
 }
 
-var lintGAResults = function(urlList) {
+var urlDataAsJSON = function(urlList) {
   return new Promise(function(resolve, reject) {
     var result = [];
     var usedURLs = [];
 
     for (var item in urlList) {
       var urlItem = urlList[item];
-      var url = urlItem[1];       // get URL from list item
-      if (url.includes('?')) {    // remove query string
-        url = url.split('?')[0];
-      }
+      var url = util.removeQueryStr(urlItem[1]); // get URL from list item
+
       // remove leading title
       urlItem[0] = urlItem[0].replace('The Daily Pennsylvanian | ', '');
 
@@ -85,7 +85,7 @@ var lintGAResults = function(urlList) {
 
           // Check for done conditions
           if (result.length === urlList.length) {
-            result = result.slice(0, 10 - 1); // TODO: Make max results
+            // result = result.slice(0, 10 - 1); // TODO: Make max results
             result = {'result': result};
             // Set cache and resolve promise
 
@@ -105,7 +105,6 @@ var lintGAResults = function(urlList) {
 }
 
 var mergeOGData = function(canonicalURL, urlData) {
-  console.log('GETTING OG FOR ', canonicalURL);
   return new Promise(function (resolve, reject) {
     openGraph({url: canonicalURL, timeout: 9000}, function (err, results) {
       if (err) {
