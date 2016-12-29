@@ -58,7 +58,6 @@ function queryTopArticles(analytics, maxResults) {
         }
 
         var topURLs = util.combineAndStripURLs(response.rows, maxResults);
-        console.log(topURLs);
         resolve(urlDataAsJSON(topURLs));
       });
     });
@@ -68,38 +67,35 @@ function queryTopArticles(analytics, maxResults) {
 var urlDataAsJSON = function(urlList) {
   return new Promise(function(resolve, reject) {
     var result = [];
-    var usedURLs = [];
 
     for (var item in urlList) {
       var urlItem = urlList[item];
-      var url = util.removeQueryStr(urlItem[1]); // get URL from list item
+      var url = urlItem[1]; // get URL from list item
 
       // remove leading title
       urlItem[0] = urlItem[0].replace('The Daily Pennsylvanian | ', '');
 
-      if (usedURLs.indexOf(url) < 0) { // not in usedURLs
-        var fullURL = `http://www.thedp.com${url}`;
-        mergeOGData(fullURL, urlItem).then(function(data) {
-          result.push(data);
-          usedURLs.push(url);
+      mergeOGData(`http://www.thedp.com${url}`, urlItem).then(function(data) {
+        result.push(data);
 
-          // Check for done conditions
-          if (result.length === urlList.length) {
-            // result = result.slice(0, 10 - 1); // TODO: Make max results
-            result = {'result': result};
-            // Set cache and resolve promise
+        // Check for done conditions
+        if (result.length === urlList.length) {
+          result.sort(function(o1, o2) {
+            return o1.views - o2.views;
+          })
+          result = {'result': result};
 
-            memcached.set('topArticles', result, 3600, function(err) {
-              if (err) { console.error(err) };
-            });
+          // Set cache and resolve promise
+          memcached.set('topArticles', result, 3600, function(err) {
+            if (err) { console.error(err) };
+          });
 
-            return resolve(result);
-          }
-        }, function(err) {
-          console.error('error getting OG tags');
-          reject(err);
-        })
-      }
+          return resolve(result);
+        }
+      }, function(err) {
+        console.error('error getting OG tags');
+        reject(err);
+      });
     }
   });
 }
@@ -116,7 +112,7 @@ var mergeOGData = function(canonicalURL, urlData) {
         'ogTitle': util.htmlEscape(results.data.ogTitle),
         'path': urlData[1],
         'views': urlData[2],
-        'image': results.data.ogImage.url
+        'image': results.data.ogImage.url.replace('p.', 't.n')
       }
       resolve(res);
     });
