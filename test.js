@@ -1,10 +1,13 @@
 var api = require('./app.js');
 
 var apiRequest = {
-  requestContext: {
-    resourcePath: '/',
-    httpMethod: 'GET'
-  }
+  context: {
+    path: '/properties',//{property}',
+    method: 'GET'
+  }//,
+//  pathParams: {
+//    property: 'DP'
+//  }
 };
 
 var lambdaContextSpy = {

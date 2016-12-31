@@ -1,6 +1,7 @@
 // Requires
 var google     = require('googleapis');
 var util       = require('./util');
+var constants  = require('./constants');
 var Promise    = require('promise');
 var Memcached  = require('memcached');
 var ApiBuilder = require('claudia-api-builder');
@@ -25,12 +26,10 @@ var api        = new ApiBuilder();
 var memcached  = new Memcached('pub-memcache-10791.us-east-1-2.5.ec2.garantiadata.com:10791');
 var jwtClient = new google.auth.JWT(key.client_email, null, key.private_key, ['https://www.googleapis.com/auth/analytics.readonly'], null);
 
-var DP_VIEW_ID = 'ga:22050415';
-
-function queryTopArticles(analytics, maxResults) {
+function queryTopArticles(analytics, viewID, maxResults) {
   return new Promise(function (resolve, reject) {
     // check cache first
-    memcached.get('topArticles', function(err, data) {
+    memcached.get(viewID + '_topArticles', function(err, data) {
       if (err) {
         console.error(err);
         reject(err);
@@ -42,7 +41,7 @@ function queryTopArticles(analytics, maxResults) {
       // Otherwise get data
       analytics.data.ga.get({
         'auth': jwtClient,
-        'ids': DP_VIEW_ID,
+        'ids': viewID,
         'metrics': 'ga:pageViews',
         'dimensions': 'ga:pageTitle,ga:pagePath',
         'start-date': '7daysAgo',
@@ -57,13 +56,13 @@ function queryTopArticles(analytics, maxResults) {
         }
 
         var topURLs = util.combineAndStripURLs(response.rows, maxResults);
-        return resolve(urlDataAsJSON(topURLs));
+        return resolve(urlDataAsJSON(topURLs, viewID));
       });
     });
   });
 }
 
-var urlDataAsJSON = function(urlList) {
+var urlDataAsJSON = function(urlList, viewID) {
   return new Promise(function(resolve, reject) {
     var result = [];
 
@@ -85,7 +84,7 @@ var urlDataAsJSON = function(urlList) {
           result = {'result': result};
 
           // Set cache and resolve promise
-          memcached.set('topArticles', result, 3600, function(err) {
+          memcached.set(viewID + '_topArticles', result, 3600, function(err) {
             if (err) { console.error(err) };
           });
 
@@ -111,7 +110,7 @@ var mergeOGData = function(canonicalURL, urlData) {
         'ogTitle': util.htmlEscape(results.data.ogTitle),
         'path': urlData[1],
         'views': urlData[2],
-        'image': results.data.ogImage.url.replace('p.', 't.n')
+        'image': results.data.ogImage.url.replace('p.', 't.')
       }
       resolve(res);
     });
@@ -119,7 +118,13 @@ var mergeOGData = function(canonicalURL, urlData) {
 }
 
 // API Endpoints
-api.get('/', function () {
+api.get('/properties', function (request) {
+  var endpoints = Object.keys(constants.VIEW_ID).map(function(e) {return '/' + e});
+  return {'valid property endpoints': endpoints};
+});
+  
+  
+api.get('/{property}', function (request) {
   return new Promise(function (resolve, reject) {
     jwtClient.authorize(function (err, tokens) {
       if (err) {
@@ -127,9 +132,12 @@ api.get('/', function () {
         reject(err);
       }
       var analytics = google.analytics('v3');
-      return resolve(queryTopArticles(analytics, 10));
+      var viewID = constants.VIEW_ID[request.pathParams.property];
+      return resolve(queryTopArticles(analytics, viewID, 10));
     });
   });
+}, {
+  success: {contentType: 'application/json; charset=utf-8'}
 });
 
 module.exports = api;
