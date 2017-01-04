@@ -172,5 +172,5 @@ function getOpenGraphTags($urlPath) {
   // Make sure we're getting the thumbnail.
   $photoURL = str_replace("p.", "t.", $photoURL);
   // Return the string to append to the JSON. Be careful with quotes
-  return '"og:title": "'.$ogTitle.'",'."\n".'"ogImage": "'.$photoURL.'",'."\n";
+  return '"og:title": "'.htmlspecialchars($ogTitle).'",'."\n".'"ogImage": "'.$photoURL.'",'."\n";
 }
