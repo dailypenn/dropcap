@@ -119,11 +119,12 @@ var mergeOGData = function(canonicalURL, urlData) {
 
 // API Endpoints
 api.get('/properties', function (request) {
-  var endpoints = Object.keys(constants.VIEW_ID).map(function(e) {return '/' + e});
+  var endpoints = Object.keys(constants.VIEW_ID).map(function(e) {
+    return '/' + e
+  });
   return {'valid property endpoints': endpoints};
 });
-  
-  
+
 api.get('/{property}', function (request) {
   return new Promise(function (resolve, reject) {
     jwtClient.authorize(function (err, tokens) {
