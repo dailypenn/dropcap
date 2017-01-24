@@ -1,0 +1,11 @@
+{
+  "lambda": {
+    "role": "dropcap-executor",
+    "name": "dropcap",
+    "region": "us-east-1"
+  },
+  "api": {
+    "id": "uf2notupk4",
+    "module": "app"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "dropcap",
+  "version": "1.0.0",
+  "description": "Lambda functions to generate top ten articles from Google Analytics",
+  "main": "app.js",
+  "scripts": {
+    "create": "claudia create --region us-east-1 --api-module app",
+    "deploy": "claudia update",
+    "test": "node test.js"
+  },
+  "author": "Andrew Fischer",
+  "license": "ISC",
+  "dependencies": {
+    "claudia-api-builder": "^2.3.1",
+    "googleapis": "^15.0.0",
+    "memcached": "^2.2.2",
+    "open-graph-scraper": "^2.3.7",
+    "promise": "^7.1.1"
+  },
+  "devDependencies": {
+    "eslint": "^3.12.2",
+    "eslint-config-standard": "^6.2.1",
+    "eslint-plugin-promise": "^3.4.0",
+    "eslint-plugin-standard": "^2.0.1"
+  }
+}

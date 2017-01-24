@@ -1,0 +1,14 @@
+{
+  "extends": "standard",
+  "plugins": [
+    "standard",
+    "promise"
+  ],
+  "rules": {
+    "no-extra-parens": 1,
+    "semi": 0,
+    "space-before-function-paren": 0,
+    "no-multi-spaces": 0,
+    "no-control-regex": 0
+  }
+}
