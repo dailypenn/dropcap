@@ -36,7 +36,7 @@ function queryTopArticles(analytics, viewID, maxResults) {
       }
       if (data) {
         // return from memcached
-        // return resolve(data); // Comment out when developing to avoid using cached data
+        return resolve(data); // Comment out when developing to avoid using cached data
       }
       // Otherwise get data
       analytics.data.ga.get({
