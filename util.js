@@ -47,19 +47,25 @@ var removeQueryStr = function(url) {
 // This is an ugly function and will run poorly over large data sets (it's
 // O(n^2) and shouldn't be run often.
 var combineAndStripURLs = function(urlList, maxResults) {
+  var nonDupe = true;
   var combined = [];
   for (var item in urlList) {
     // remove query string
     urlList[item][1] = removeQueryStr(urlList[item][1]);
 
-    // Check for duplicates
+    // Check for duplicates by looping over comibned
     for (var parsedItem in combined) {
-      if (parsedItem[1] === item[1]) { // found Dupe
-        parsedItem[1] += item[1];
+      if (
+        urlList[item][0] === combined[parsedItem][0] || // same title
+        urlList[item][1] === combined[parsedItem][1]) { // same URL
+        nonDupe = false;
         break;
       }
     }
-    combined.push(urlList[item]);
+    if (nonDupe) {
+      combined.push(urlList[item]);
+    }
+    nonDupe = true;
   }
   return combined.slice(0, maxResults);
 }
