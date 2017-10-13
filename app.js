@@ -109,7 +109,13 @@ function getTopTen(property) {
 }
 
 app.get('/:property', function (request, res) {
+  // 10 browser cache, 30 minute public cache
+  res.set('Cache-Control', 'public, max-age=600, s-maxage=1800');
   getTopTen(request.params.property).then((data) => res.send(data))
 })
 
-module.exports = app
+var server = app.listen(3000, function() {
+  console.log('Express server listening on port ' + server.address().port)
+});
+
+exports.dropcap = app
