@@ -47,7 +47,6 @@ var removeQueryStr = function(url) {
 // This is an ugly function and will run poorly over large data sets (it's
 // O(n^2) and shouldn't be run often.
 var combineAndStripURLs = function(urlList, maxResults) {
-  console.log('combining urls...');
   var nonDupe = true;
   var combined = [];
   for (var item in urlList) {

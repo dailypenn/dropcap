@@ -1,10 +1,10 @@
-var express = require('express');
-var app = express();
-var google     = require('googleapis');
-var util       = require('./util');
-var constants  = require('./constants');
-var Memcached  = require('memcached');
-var openGraph  = require('open-graph-scraper');
+var express = require('express')
+var app = express()
+var google     = require('googleapis')
+var util       = require('./util')
+var constants  = require('./constants')
+var Memcached  = require('memcached')
+var openGraph  = require('open-graph-scraper')
 
 var key = {
   'type': 'service_account',
@@ -22,7 +22,7 @@ var key = {
 var memcached  = new Memcached('pub-memcache-10791.us-east-1-2.5.ec2.garantiadata.com:10791');
 var jwtClient = new google.auth.JWT(key.client_email, null, key.private_key, ['https://www.googleapis.com/auth/analytics.readonly'], null);
 
-function queryTopArticles(analytics, viewID, maxResults) {
+function queryTopArticles(analytics, viewName, maxResults) {
   return new Promise(function (resolve, reject) {
     // check cache first
     // memcached.get(viewID + '_topArticles', function(err, data) {
@@ -38,7 +38,7 @@ function queryTopArticles(analytics, viewID, maxResults) {
       console.log('querying top articles...');
       analytics.data.ga.get({
         'auth': jwtClient,
-        'ids': viewID,
+        'ids': constants.VIEW_ID[viewName],
         'metrics': 'ga:pageViews',
         'dimensions': 'ga:pageTitle,ga:pagePath',
         'start-date': '7daysAgo',
@@ -54,23 +54,27 @@ function queryTopArticles(analytics, viewID, maxResults) {
 
         var topURLs = util.combineAndStripURLs(response.rows, maxResults);
         console.log(topURLs);
-        return resolve(urlDataAsJSON(topURLs, viewID));
+        return resolve(urlDataAsJSON(topURLs, viewName));
       });
     });
 }
 
-var urlDataAsJSON = function(urlList, viewID) {
+var urlDataAsJSON = function(urlList, viewName) {
+  const viewID = constants.VIEW_ID[viewName]
+  const baseURL = constants.BASE_URL[viewName]
   return new Promise(function(resolve, reject) {
     var result = [];
 
     for (var item in urlList) {
       var urlItem = urlList[item];
-      var url = urlItem[1]; // get URL from list item
+      var urlPath = urlItem[1]; // get URL from list item
 
       // remove leading title
-      urlItem[0] = urlItem[0].replace('The Daily Pennsylvanian | ', '');
+      urlItem[0] = urlItem[0].replace('The Daily Pennsylvanian | ', '')
+      urlItem[0] = urlItem[0].replace(' | The Daily Pennsylvanian', '')
+      urlItem[0] = urlItem[0].replace(' | 34st Street Magazine', '')
 
-      mergeOGData(`http://www.thedp.com${url}`, urlItem).then(function(data) {
+      mergeOGData(baseURL + urlPath, urlItem).then(function(data) {
         result.push(data);
 
         // Check for done conditions
@@ -124,7 +128,7 @@ function getTopTen(property) {
       }
       var analytics = google.analytics('v3');
       var viewID = constants.VIEW_ID[property];
-      resolve(queryTopArticles(analytics, viewID, 10));
+      resolve(queryTopArticles(analytics, property, 10));
     });
   });
 }
