@@ -1,14 +1,13 @@
 {
-  "extends": "standard",
-  "plugins": [
-    "standard",
-    "promise"
-  ],
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "extends": "eslint:recommended",
   "rules": {
-    "no-extra-parens": 1,
-    "semi": 0,
-    "space-before-function-paren": 0,
-    "no-multi-spaces": 0,
-    "no-control-regex": 0
+    "indent": ["error", 2],
+    "linebreak-style": ["error", "unix"],
+    "quotes": ["error", "single"],
+    "semi": ["error", "never"]
   }
 }

@@ -1,13 +1,11 @@
-// Requires
+var express = require('express');
+var app = express();
 var google     = require('googleapis');
 var util       = require('./util');
 var constants  = require('./constants');
-var Promise    = require('promise');
 var Memcached  = require('memcached');
-var ApiBuilder = require('claudia-api-builder');
 var openGraph  = require('open-graph-scraper');
 
-// Authentication Credentials
 var key = {
   'type': 'service_account',
   'project_id': 'dailypenn-web-top10',
@@ -21,24 +19,23 @@ var key = {
   'client_x509_cert_url': 'https://www.googleapis.com/robot/v1/metadata/x509/dp-top10%40dailypenn-web-top10.iam.gserviceaccount.com'
 };
 
-// Globals
-var api        = new ApiBuilder();
 var memcached  = new Memcached('pub-memcache-10791.us-east-1-2.5.ec2.garantiadata.com:10791');
 var jwtClient = new google.auth.JWT(key.client_email, null, key.private_key, ['https://www.googleapis.com/auth/analytics.readonly'], null);
 
 function queryTopArticles(analytics, viewID, maxResults) {
   return new Promise(function (resolve, reject) {
     // check cache first
-    memcached.get(viewID + '_topArticles', function(err, data) {
-      if (err) {
-        console.error(err);
-        reject(err);
-      }
-      if (data) {
-        // return from memcached
-        return resolve(data); // Comment out when developing to avoid using cached data
-      }
+    // memcached.get(viewID + '_topArticles', function(err, data) {
+      // if (err) {
+      //   console.error(err);
+      //   reject(err);
+      // }
+      // if (data) {
+      //   // return from memcached
+      //   return resolve(data); // Comment out when developing to avoid using cached data
+      // }
       // Otherwise get data
+      console.log('querying top articles...');
       analytics.data.ga.get({
         'auth': jwtClient,
         'ids': viewID,
@@ -56,10 +53,10 @@ function queryTopArticles(analytics, viewID, maxResults) {
         }
 
         var topURLs = util.combineAndStripURLs(response.rows, maxResults);
+        console.log(topURLs);
         return resolve(urlDataAsJSON(topURLs, viewID));
       });
     });
-  });
 }
 
 var urlDataAsJSON = function(urlList, viewID) {
@@ -117,28 +114,23 @@ var mergeOGData = function(canonicalURL, urlData) {
   });
 }
 
-// API Endpoints
-api.get('/properties', function (request) {
-  var endpoints = Object.keys(constants.VIEW_ID).map(function(e) {
-    return '/' + e
-  });
-  return {'valid property endpoints': endpoints};
-});
-
-api.get('/{property}', function (request) {
+function getTopTen(property) {
   return new Promise(function (resolve, reject) {
     jwtClient.authorize(function (err, tokens) {
+      console.log('getting jwt');
       if (err) {
         console.error('error generating jwt token', err);
         reject(err);
       }
       var analytics = google.analytics('v3');
-      var viewID = constants.VIEW_ID[request.pathParams.property];
-      return resolve(queryTopArticles(analytics, viewID, 10));
+      var viewID = constants.VIEW_ID[property];
+      resolve(queryTopArticles(analytics, viewID, 10));
     });
   });
-}, {
-  success: {contentType: 'application/json; charset=utf-8'}
+}
+
+app.get('/:property', function (request, res) {
+  getTopTen(request.params.property).then((data) => res.send(data))
 });
 
-module.exports = api;
+module.exports = app;
