@@ -1,10 +1,10 @@
 var express = require('express')
 var app = express()
+
 var google     = require('googleapis')
+var openGraph  = require('open-graph-scraper')
 var util       = require('./util')
 var constants  = require('./constants')
-var Memcached  = require('memcached')
-var openGraph  = require('open-graph-scraper')
 
 var key = {
   'type': 'service_account',
@@ -17,94 +17,72 @@ var key = {
   'token_uri': 'https://accounts.google.com/o/oauth2/token',
   'auth_provider_x509_cert_url': 'https://www.googleapis.com/oauth2/v1/certs',
   'client_x509_cert_url': 'https://www.googleapis.com/robot/v1/metadata/x509/dp-top10%40dailypenn-web-top10.iam.gserviceaccount.com'
-};
+}
 
-var memcached  = new Memcached('pub-memcache-10791.us-east-1-2.5.ec2.garantiadata.com:10791');
-var jwtClient = new google.auth.JWT(key.client_email, null, key.private_key, ['https://www.googleapis.com/auth/analytics.readonly'], null);
+var jwtClient = new google.auth.JWT(key.client_email, null, key.private_key, ['https://www.googleapis.com/auth/analytics.readonly'], null)
 
 function queryTopArticles(analytics, viewName, maxResults) {
   return new Promise(function (resolve, reject) {
-    // check cache first
-    // memcached.get(viewID + '_topArticles', function(err, data) {
-      // if (err) {
-      //   console.error(err);
-      //   reject(err);
-      // }
-      // if (data) {
-      //   // return from memcached
-      //   return resolve(data); // Comment out when developing to avoid using cached data
-      // }
-      // Otherwise get data
-      console.log('querying top articles...');
-      analytics.data.ga.get({
-        'auth': jwtClient,
-        'ids': constants.VIEW_ID[viewName],
-        'metrics': 'ga:pageViews',
-        'dimensions': 'ga:pageTitle,ga:pagePath',
-        'start-date': '7daysAgo',
-        'end-date': 'today',
-        'sort': '-ga:pageViews',
-        'max-results': maxResults * 2, // get 2x max results to remove dupes
-        'filters': 'ga:pagePathLevel1==/article/;' + util.get2ndLvlPagePaths() + ';' + util.get3rdLvlPagePaths()
-      }, function (err, response) {
-        if (err) {
-          console.error('error getting analytics: ' + err);
-          reject(err);
-        }
+    analytics.data.ga.get({
+      'auth': jwtClient,
+      'ids': constants.VIEW_ID[viewName],
+      'metrics': 'ga:pageViews',
+      'dimensions': 'ga:pageTitle,ga:pagePath',
+      'start-date': '7daysAgo',
+      'end-date': 'today',
+      'sort': '-ga:pageViews',
+      'max-results': maxResults * 2, // get 2x max results to remove dupes
+      'filters': 'ga:pagePathLevel1==/article/;' + util.get2ndLvlPagePaths() + ';' + util.get3rdLvlPagePaths()
+    }, function (err, response) {
+      if (err) {
+        // analytics fetching error
+        reject(err)
+      }
 
-        var topURLs = util.combineAndStripURLs(response.rows, maxResults);
-        console.log(topURLs);
-        return resolve(urlDataAsJSON(topURLs, viewName));
-      });
-    });
+      var topURLs = util.combineAndStripURLs(response.rows, maxResults)
+      return resolve(urlDataAsJSON(topURLs, viewName))
+    })
+  })
 }
 
 var urlDataAsJSON = function(urlList, viewName) {
-  const viewID = constants.VIEW_ID[viewName]
   const baseURL = constants.BASE_URL[viewName]
   return new Promise(function(resolve, reject) {
-    var result = [];
+    var result = []
 
     for (var item in urlList) {
-      var urlItem = urlList[item];
-      var urlPath = urlItem[1]; // get URL from list item
+      var urlItem = urlList[item]
+      var urlPath = urlItem[1] // get URL from list item
 
-      // remove leading title
+      // remove leading title TODO Make this a constant or something.
       urlItem[0] = urlItem[0].replace('The Daily Pennsylvanian | ', '')
       urlItem[0] = urlItem[0].replace(' | The Daily Pennsylvanian', '')
       urlItem[0] = urlItem[0].replace(' | 34st Street Magazine', '')
 
       mergeOGData(baseURL + urlPath, urlItem).then(function(data) {
-        result.push(data);
+        result.push(data)
 
         // Check for done conditions
         if (result.length === urlList.length) {
           result.sort(function(o1, o2) {
-            return o2.views - o1.views;
+            return o2.views - o1.views
           })
-          result = {'result': result};
-
-          // Set cache and resolve promise
-          memcached.set(viewID + '_topArticles', result, 3600, function(err) {
-            if (err) { console.error(err) };
-          });
-
-          return resolve(result);
+          result = {'result': result}
+          return resolve(result)
         }
       }, function(err) {
-        console.error('error getting OG tags');
-        reject(err);
-      });
+        reject(err)
+      })
     }
-  });
+  })
 }
 
 var mergeOGData = function(canonicalURL, urlData) {
   return new Promise(function (resolve, reject) {
     openGraph({url: canonicalURL, timeout: 9000}, function (err, results) {
       if (err) {
-        console.error('error getting opengraph:', results);
-        reject(results);
+        // error getting opengraph results
+        reject(results)
       }
       var res = {
         'gaTitle': util.htmlEscape(urlData[0]),
@@ -113,28 +91,25 @@ var mergeOGData = function(canonicalURL, urlData) {
         'views': urlData[2],
         'image': results.data.ogImage.url.replace('p.', 't.')
       }
-      resolve(res);
-    });
-  });
+      resolve(res)
+    })
+  })
 }
 
 function getTopTen(property) {
   return new Promise(function (resolve, reject) {
     jwtClient.authorize(function (err, tokens) {
-      console.log('getting jwt');
       if (err) {
-        console.error('error generating jwt token', err);
-        reject(err);
+        reject(err)
       }
-      var analytics = google.analytics('v3');
-      var viewID = constants.VIEW_ID[property];
-      resolve(queryTopArticles(analytics, property, 10));
-    });
-  });
+      var analytics = google.analytics('v3')
+      resolve(queryTopArticles(analytics, property, 10))
+    })
+  })
 }
 
 app.get('/:property', function (request, res) {
   getTopTen(request.params.property).then((data) => res.send(data))
-});
+})
 
-module.exports = app;
+module.exports = app

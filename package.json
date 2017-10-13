@@ -12,7 +12,6 @@
   "dependencies": {
     "express": "^4.13.3",
     "googleapis": "^22.2.0",
-    "memcached": "^2.2.2",
     "open-graph-scraper": "^3.0.1"
   },
   "devDependencies": {
