@@ -22,7 +22,7 @@ var key = {
 var jwtClient = new google.auth.JWT(key.client_email, null, key.private_key, ['https://www.googleapis.com/auth/analytics.readonly'], null)
 
 function queryTopArticles(analytics, viewName, maxResults) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     analytics.data.ga.get({
       'auth': jwtClient,
       'ids': constants.VIEW_ID[viewName],
@@ -35,7 +35,8 @@ function queryTopArticles(analytics, viewName, maxResults) {
       'filters': 'ga:pagePathLevel1==/article/;' + util.get2ndLvlPagePaths() + ';' + util.get3rdLvlPagePaths()
     }, function (err, response) {
       if (err) {
-        // analytics fetching error
+        console.error('Analytics fetching error')
+        console.error(err)
         reject(err)
       }
 
@@ -47,7 +48,7 @@ function queryTopArticles(analytics, viewName, maxResults) {
 
 var urlDataAsJSON = function(urlList, viewName) {
   const baseURL = constants.BASE_URL[viewName]
-  return new Promise(function(resolve, reject) {
+  return new Promise((resolve, reject) => {
     var result = []
 
     for (var item in urlList) {
@@ -71,6 +72,8 @@ var urlDataAsJSON = function(urlList, viewName) {
           return resolve(result)
         }
       }, function(err) {
+        console.error('Open graph merging error')
+        console.error(err)
         reject(err)
       })
     }
@@ -78,10 +81,11 @@ var urlDataAsJSON = function(urlList, viewName) {
 }
 
 var mergeOGData = function(canonicalURL, urlData) {
-  return new Promise(function (resolve, reject) {
-    openGraph({url: canonicalURL, timeout: 9000}, function (err, results) {
+  return new Promise((resolve, reject) =>  {
+    openGraph({url: canonicalURL, timeout: 9000}, (err, results) => {
       if (err) {
-        // error getting opengraph results
+        console.error('Open graph fetching error')
+        console.error(err)
         reject(results)
       }
       var res = {
@@ -97,8 +101,8 @@ var mergeOGData = function(canonicalURL, urlData) {
 }
 
 function getTopTen(property) {
-  return new Promise(function (resolve, reject) {
-    jwtClient.authorize(function (err, tokens) {
+  return new Promise((resolve, reject) => {
+    jwtClient.authorize((err, tokens) => {
       if (err) {
         reject(err)
       }
