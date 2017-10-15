@@ -1,10 +1,10 @@
-var express = require('express')
-var app = express()
+const express = require('express')
+const app = express()
 
-var google     = require('googleapis')
-var openGraph  = require('open-graph-scraper')
-var util       = require('./util')
-var constants  = require('./constants')
+const google     = require('googleapis')
+const openGraph  = require('open-graph-scraper')
+const util       = require('./util')
+const constants  = require('./constants')
 
 var key = {
   'type': 'service_account',
@@ -113,9 +113,5 @@ app.get('/:property', function (request, res) {
   res.set('Cache-Control', 'public, max-age=600, s-maxage=1800');
   getTopTen(request.params.property).then((data) => res.send(data))
 })
-
-var server = app.listen(3000, function() {
-  console.log('Express server listening on port ' + server.address().port)
-});
 
 exports.dropcap = app

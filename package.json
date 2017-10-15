@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
+    "start": "node bin/www",
     "deploy": "gcloud beta functions deploy dropcap --stage-bucket cloud-function-deployments --trigger-http",
     "test": "mocha --recursive test",
     "test:coverage": "nyc npm test",
