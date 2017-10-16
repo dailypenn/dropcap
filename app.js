@@ -1,5 +1,5 @@
-const express = require('express')
-const app     = express()
+const express   = require('express')
+const app       = express()
 
 const google    = require('googleapis')
 const openGraph = require('open-graph-scraper')
@@ -17,7 +17,7 @@ function queryTopArticles(analytics, viewName, maxResults) {
       null
     );
 
-    jwtClient.authorize(function (err, tokens) {
+    jwtClient.authorize((err, tokens) => {
       if (err) {
         console.error(err);
         return;
@@ -32,7 +32,7 @@ function queryTopArticles(analytics, viewName, maxResults) {
         'end-date': 'today',
         'sort': '-ga:pageViews',
         'max-results': maxResults * 2, // get 2x max results to remove dupes
-        'filters': 'ga:pagePathLevel1==/article/;' + util.get2ndLvlPagePaths() + ';' + util.get3rdLvlPagePaths()
+        'filters': `ga:pagePathLevel1==/article/;${util.get2ndLvlPagePaths()};${util.get3rdLvlPagePaths()}`
       }, function (err, response) {
         if (err) {
           console.error('Analytics fetching error')
@@ -109,13 +109,13 @@ function getTopTen(property) {
   })
 }
 
-app.get('/favicon.ico', function (request, res) {
+app.get('/favicon.ico', (req, res) => {
   // do nothing
   res.status(204);
 });
 
-app.get('/:property', function (request, res) {
-  const propertyName = request.params.property
+app.get('/:property', (req, res) => {
+  const propertyName = req.params.property.toUpperCase()
   if (constants.VIEW_ID[propertyName] == null) {
     res.send(`{"error": "unknown google analytics property ${propertyName}"}`)
     return
