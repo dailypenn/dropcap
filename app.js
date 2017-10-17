@@ -122,7 +122,7 @@ app.get('/:property', (req, res) => {
   // 10 browser cache, 30 minute public cache
   res.set('Cache-Control', 'public, max-age=600, s-maxage=1800');
   res.set('Access-Control-Allow-Origin', "*")
-  res.set('Access-Control-Allow-Methods', 'GET, POST')
+  res.set('Access-Control-Allow-Methods', 'GET')
   getTopTen(propertyName).then((data) => res.send(data))
 })
 
