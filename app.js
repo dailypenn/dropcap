@@ -1,4 +1,5 @@
 const express   = require('express')
+const cors     = require('cors')
 const app       = express()
 
 const google    = require('googleapis')
@@ -122,6 +123,8 @@ app.get('/:property', (req, res) => {
   }
   // 10 browser cache, 30 minute public cache
   res.set('Cache-Control', 'public, max-age=600, s-maxage=1800');
+  res.set('Access-Control-Allow-Origin', "*")
+  res.set('Access-Control-Allow-Methods', 'GET, POST')
   getTopTen(propertyName).then((data) => res.send(data))
 })
 
