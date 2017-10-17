@@ -6,7 +6,7 @@ const google    = require('googleapis')
 const openGraph = require('open-graph-scraper')
 const util      = require('./util')
 const constants = require('./constants')
-const key       = require('./dropcap-service-credentials.json');
+const key       = require('./dropcap-service-credentials.json')
 
 function queryTopArticles(analytics, viewName, maxResults) {
   return new Promise((resolve, reject) => {
@@ -16,12 +16,12 @@ function queryTopArticles(analytics, viewName, maxResults) {
       key.private_key,
       ['https://www.googleapis.com/auth/analytics.readonly'],
       null
-    );
+    )
 
     jwtClient.authorize((err, tokens) => {
       if (err) {
-        console.error(err);
-        return;
+        console.error(err)
+        reject(err)
       }
 
       analytics.data.ga.get({
@@ -43,9 +43,7 @@ function queryTopArticles(analytics, viewName, maxResults) {
         var topURLs = util.combineAndStripURLs(response.rows, maxResults)
         return resolve(urlDataAsJSON(topURLs, viewName))
       })
-    });
-
-
+    })
   })
 }
 
@@ -112,8 +110,8 @@ function getTopTen(property) {
 
 app.get('/favicon.ico', (req, res) => {
   // do nothing
-  res.status(204);
-});
+  res.status(204)
+})
 
 app.get('/:property', (req, res) => {
   const propertyName = req.params.property.toUpperCase()
@@ -125,6 +123,7 @@ app.get('/:property', (req, res) => {
   res.set('Cache-Control', 'public, max-age=600, s-maxage=1800');
   res.set('Access-Control-Allow-Origin', "*")
   res.set('Access-Control-Allow-Methods', 'GET')
+  res.set('Cache-Control', 'public, max-age=600, s-maxage=1800')
   getTopTen(propertyName).then((data) => res.send(data))
 })
 
