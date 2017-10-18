@@ -186,3 +186,6 @@ flycheck_*.el
 
 # directory configuration
 .dir-locals.el
+
+dropcap-service-credentials.json
+web-services*.json

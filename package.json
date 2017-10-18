@@ -1,26 +1,26 @@
 {
   "name": "dropcap",
-  "version": "1.0.0",
-  "description": "Lambda functions to generate top ten articles from Google Analytics",
+  "version": "0.0.1",
   "main": "app.js",
   "scripts": {
-    "create": "claudia create --region us-east-1 --api-module app",
-    "deploy": "claudia update",
-    "test": "node test.js"
+    "start": "node bin/www",
+    "deploy": "gcloud beta functions deploy dropcap --stage-bucket cloud-function-deployments --trigger-http",
+    "test": "mocha --recursive test",
+    "test:coverage": "nyc npm test",
+    "test:unit": "mocha --recursive test/middleware test/models test/routes",
+    "test:integration": "mocha --recursive test/integration"
   },
-  "author": "Andrew Fischer",
-  "license": "ISC",
   "dependencies": {
-    "claudia-api-builder": "^2.3.1",
-    "googleapis": "^15.0.0",
-    "memcached": "^2.2.2",
-    "open-graph-scraper": "^2.3.7",
-    "promise": "^7.1.1"
+    "cors": "^2.8.4",
+    "express": "^4.13.3",
+    "googleapis": "^22.2.0",
+    "open-graph-scraper": "^3.0.1"
   },
   "devDependencies": {
-    "eslint": "^3.12.2",
-    "eslint-config-standard": "^6.2.1",
-    "eslint-plugin-promise": "^3.4.0",
-    "eslint-plugin-standard": "^2.0.1"
+    "chai": "^3.5.0",
+    "debug": "^2.2.0",
+    "mocha": "^3.0.2",
+    "nyc": "^10.0.0",
+    "supertest": "^2.0.0"
   }
 }
