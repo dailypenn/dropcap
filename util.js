@@ -56,7 +56,7 @@ var combineAndStripURLs = function(urlList, maxResults) {
     // Check for duplicates by looping over comibned
     for (var parsedItem in combined) {
       if (
-        urlList[item][0] === combined[parsedItem][0] || // same title
+        // urlList[item][0] === combined[parsedItem][0] || // same title
         urlList[item][1] === combined[parsedItem][1]) { // same URL
         nonDupe = false
         break
@@ -71,6 +71,8 @@ var combineAndStripURLs = function(urlList, maxResults) {
 }
 
 module.exports = {
+  getYear: getYear,
+  getMonth: getMonth,
   get2ndLvlPagePaths: get2ndLvlPagePaths,
   get3rdLvlPagePaths: get3rdLvlPagePaths,
   htmlEscape: htmlEscape,
