@@ -1,34 +1,29 @@
-var getYear = function() {
-  return new Date().getFullYear()
+var getYear = () => { return new Date().getFullYear() }
+var getLastYear = () => { return new Date().getFullYear() }
+var getMonth = () => { return new Date().getMonth() + 1 }
+
+// Builds a ga:pagePath parameter with the given level and the return value of a
+// given function
+var pathFactory = function(level, intFunction) {
+  return `ga:pagePathLevel${level}==/${intFunction()}/`
 }
 
-var getMonth = function() {
-  var date = new Date()
-  return date.getMonth() + 1
-}
-
-var get2ndLvlPagePaths = function() {
-  var thisYear = getYear()
-
+var getYearPagePath = function(pathLevel) {
+  // if in january, return this and last year. Otherwise, return current year.
   if (getMonth() === 1) {
-    return `ga:pagePathLevel2==/${thisYear}/,ga:pagePathLevel2==/${thisYear - 1}/`
+    return `${pathFactory(pathLevel, getYear)},${pathFactory(pathLevel, getLastYear)}`
   }
-  return `ga:pagePathLevel2==/${thisYear}/`
+  return pathFactory(pathLevel, getYear)
 }
 
-var get3rdLvlPagePaths = function() {
+var getMonthPagePath = function(pathLevel) {
   var date = new Date()
-  var lastMonth
-  var thisMonth
-
-  if (getMonth() === 1) { // If Jan, get Dec of last year too
-    lastMonth = '12'
-    thisMonth = '01'
-  } else {
-    lastMonth = ('0' + (date.getMonth())).slice(-2)
-    thisMonth = ('0' + (date.getMonth() + 1)).slice(-2)
-  }
-  return `ga:pagePathLevel3==/${lastMonth}/,ga:pagePathLevel3==/${thisMonth}/`
+  var month = date.getMonth()
+  // if in january, last month is dec, otherwise, calculate months
+  var lastMonth = () => getMonth() === 1 ? '12' : (`0${month}`).slice(-2)
+  var thisMonth = () => getMonth() === 1 ? '01' : (`0${month + 1}`).slice(-2)
+  // return pagepath with correct level for the two months
+  return `${pathFactory(pathLevel, lastMonth)},${pathFactory(pathLevel, thisMonth)}`
 }
 
 var htmlEscape = function(str) {
@@ -44,6 +39,7 @@ var removeQueryStr = function(url) {
   return url
 }
 
+// TODO: this should be a map/reduce.
 // This is an ugly function and will run poorly over large data sets (it's
 // O(n^2) and shouldn't be run often.
 var combineAndStripURLs = function(urlList, maxResults) {
@@ -56,7 +52,6 @@ var combineAndStripURLs = function(urlList, maxResults) {
     // Check for duplicates by looping over comibned
     for (var parsedItem in combined) {
       if (
-        // urlList[item][0] === combined[parsedItem][0] || // same title
         urlList[item][1] === combined[parsedItem][1]) { // same URL
         nonDupe = false
         break
@@ -71,11 +66,8 @@ var combineAndStripURLs = function(urlList, maxResults) {
 }
 
 module.exports = {
-  getYear: getYear,
-  getMonth: getMonth,
-  get2ndLvlPagePaths: get2ndLvlPagePaths,
-  get3rdLvlPagePaths: get3rdLvlPagePaths,
+  getYearPagePath: getYearPagePath,
+  getMonthPagePath: getMonthPagePath,
   htmlEscape: htmlEscape,
-  removeQueryStr: removeQueryStr,
   combineAndStripURLs: combineAndStripURLs
 }

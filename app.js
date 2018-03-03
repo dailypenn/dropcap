@@ -29,7 +29,6 @@ function queryTopArticles(analytics, viewName, maxResults) {
         reject(err)
       }
 
-
       analytics.data.ga.get({
         'auth': jwtClient,
         'ids': VIEWS[viewName].id,
@@ -39,9 +38,9 @@ function queryTopArticles(analytics, viewName, maxResults) {
         'end-date': 'today',
         'sort': '-ga:pageViews',
         'max-results': maxResults * 2, // get 2x max results to remove dupes
-        'filters': VIEWS[viewName].blog ?
-          `ga:pagePathLevel1==/blog/;ga:pagePathLevel2==/under-the-button/;ga:pagePathLevel3==/${util.getYear()}/` :
-          `ga:pagePathLevel1==/article/;${util.get2ndLvlPagePaths()};${util.get3rdLvlPagePaths()}`
+        'filters': VIEWS[viewName].blog ? // Blogs have slightly different page path layouts
+          `ga:pagePathLevel1==/blog/;ga:pagePathLevel2==/under-the-button/;${util.getYearPagePath(3)},${util.getMonthPagePath(4)}` :
+          `ga:pagePathLevel1==/article/;${util.getYearPagePath(2)};${util.getMonthPagePath(3)}`
       }, function (err, response) {
         if (err) {
           console.error('Analytics fetching error')
@@ -110,16 +109,14 @@ var mergeOGData = function(canonicalURL, urlData) {
 }
 
 function getTopTen(property) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     var analytics = google.analytics('v3')
     resolve(queryTopArticles(analytics, property, 10))
   })
 }
 
-app.get('/favicon.ico', (req, res) => {
-  // do nothing
-  res.status(204)
-})
+// No favicon - just to keep it from throwing errors
+app.get('/favicon.ico', (req, res) => { res.status(204) })
 
 app.get('/:property', (req, res) => {
   const propertyName = req.params.property.toUpperCase()
@@ -128,8 +125,8 @@ app.get('/:property', (req, res) => {
     return
   }
   // 10 browser cache, 30 minute public cache
-  res.set('Cache-Control', 'public, max-age=600, s-maxage=1800');
-  res.set('Access-Control-Allow-Origin', "*")
+  res.set('Cache-Control', 'public, max-age=600, s-maxage=1800')
+  res.set('Access-Control-Allow-Origin', '*')
   res.set('Access-Control-Allow-Methods', 'GET')
   getTopTen(propertyName).then((data) => res.send(data))
 })
