@@ -1,0 +1,19 @@
+{
+  "views": {
+    "DP": {
+      "id": "ga:22050415",
+      "baseURL": "http://www.thedp.com",
+      "blog": false
+    },
+    "34st": {
+      "id": "ga:2741074",
+      "baseURL": "http://www.34st.com",
+      "blog": false
+    },
+    "UTB": {
+      "id": "ga:11315433",
+      "baseURL": "http://www.thedp.com",
+      "blog": true
+    }
+  }
+}
