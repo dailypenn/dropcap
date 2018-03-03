@@ -33,7 +33,7 @@ function queryTopArticles(analytics, viewName, maxResults) {
         'auth': jwtClient,
         'ids': VIEWS[viewName].id,
         'metrics': 'ga:pageViews',
-        'dimensions': 'ga:pageTitle,ga:pagePath',
+        'dimensions': 'ga:pageTitle,ga:pagePath,ga:dimension1', //dim1 is author
         'start-date': '7daysAgo',
         'end-date': 'today',
         'sort': '-ga:pageViews',
@@ -100,7 +100,8 @@ var mergeOGData = function(canonicalURL, urlData) {
         'gaTitle': util.htmlEscape(urlData[0]),
         'ogTitle': util.htmlEscape(results.data.ogTitle),
         'path': urlData[1],
-        'views': urlData[2],
+        'authors': urlData[2].split(', '),
+        'views': urlData[3],
         'image': results.data.ogImage.url.replace('p.', 't.')
       }
       resolve(res)
