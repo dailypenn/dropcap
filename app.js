@@ -1,14 +1,19 @@
 const express   = require('express')
-const cors     = require('cors')
-const app       = express()
-
+const cors      = require('cors')
 const google    = require('googleapis')
 const openGraph = require('open-graph-scraper')
+
 const util      = require('./util')
-const constants = require('./constants')
-const key       = require('./dropcap-service-credentials.json')
+const conf      = require('./config.json')
+
+
+const app = express()
+app.use(cors())
+
+const VIEWS = conf.views
 
 function queryTopArticles(analytics, viewName, maxResults) {
+  const key = require('./dropcap-service-credentials.json')
   return new Promise((resolve, reject) => {
     var jwtClient = new google.auth.JWT(
       key.client_email,
@@ -27,14 +32,14 @@ function queryTopArticles(analytics, viewName, maxResults) {
 
       analytics.data.ga.get({
         'auth': jwtClient,
-        'ids': constants.VIEW_ID[viewName],
+        'ids': VIEWS[viewName].id,
         'metrics': 'ga:pageViews',
         'dimensions': 'ga:pageTitle,ga:pagePath',
         'start-date': '7daysAgo',
         'end-date': 'today',
         'sort': '-ga:pageViews',
         'max-results': maxResults * 2, // get 2x max results to remove dupes
-        'filters': constants.BLOG[viewName] ?
+        'filters': VIEWS[viewName].blog ?
           `ga:pagePathLevel1==/blog/;ga:pagePathLevel2==/under-the-button/;ga:pagePathLevel3==/${util.getYear()}/` :
           `ga:pagePathLevel1==/article/;${util.get2ndLvlPagePaths()};${util.get3rdLvlPagePaths()}`
       }, function (err, response) {
@@ -51,7 +56,7 @@ function queryTopArticles(analytics, viewName, maxResults) {
 }
 
 var urlDataAsJSON = function(urlList, viewName) {
-  const baseURL = constants.BASE_URL[viewName]
+  const baseURL = VIEWS[viewName].baseURL
   return new Promise((resolve, reject) => {
     var result = []
 
@@ -118,7 +123,7 @@ app.get('/favicon.ico', (req, res) => {
 
 app.get('/:property', (req, res) => {
   const propertyName = req.params.property.toUpperCase()
-  if (constants.VIEW_ID[propertyName] == null) {
+  if (VIEWS[propertyName].id == null) {
     res.send(`{"error": "unknown google analytics property ${propertyName}"}`)
     return
   }
