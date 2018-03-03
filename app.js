@@ -24,6 +24,7 @@ function queryTopArticles(analytics, viewName, maxResults) {
         reject(err)
       }
 
+
       analytics.data.ga.get({
         'auth': jwtClient,
         'ids': constants.VIEW_ID[viewName],
@@ -33,7 +34,9 @@ function queryTopArticles(analytics, viewName, maxResults) {
         'end-date': 'today',
         'sort': '-ga:pageViews',
         'max-results': maxResults * 2, // get 2x max results to remove dupes
-        'filters': `ga:pagePathLevel1==/article/;${util.get2ndLvlPagePaths()};${util.get3rdLvlPagePaths()}`
+        'filters': constants.BLOG[viewName] ?
+          `ga:pagePathLevel1==/blog/;ga:pagePathLevel2==/under-the-button/;ga:pagePathLevel3==/${util.getYear()}/` :
+          `ga:pagePathLevel1==/article/;${util.get2ndLvlPagePaths()};${util.get3rdLvlPagePaths()}`
       }, function (err, response) {
         if (err) {
           console.error('Analytics fetching error')
