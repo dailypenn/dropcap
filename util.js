@@ -1,10 +1,13 @@
-// Add encodeHTML() to String's prototype
+/**
+ * Adds encodeHTML() to String's prototype. The regex looks for these ranges:
+ *   \x21-\x2f      ASCII punctuation
+ *   \x3A-\x40      ASCII punctuation
+ *   \x5b-\x60      ASCII punctuation
+ *   \xa0-\xff      Latin 1 supp
+ *   \u2013-\u2044  Misc punctuation
+ * @return {String} HTML encoded string
+ */
 String.prototype.encodeHTML = function() {
-  // \x21-\x2f      ASCII punctuation
-  // \x3A-\x40      ASCII punctuation
-  // \x5b-\x60      ASCII punctuation
-  // \xa0-\xff      Latin 1 supp
-  // \u2013-\u2044  Misc punctuation
   return this.replace(/[\x21-\x2b\x2f\xa0-\xff\x3A-\x40\u2013-\u2044]/g, (i) => {
     return '&#' + i.charCodeAt(0) + ';'
   })
@@ -46,30 +49,19 @@ var removeQueryStr = function(url) {
   return url
 }
 
-// TODO: this should be a map/reduce.
-// This is an ugly function and will run poorly over large data sets (it's
-// O(n^2) and shouldn't be run often.
+/**
+ * Removes and returns duplciate URLs based on their slug.
+ * @param  {Array}  urlList    GA article/url/author/view param list
+ * @param  {Number} maxResults The number of non duplicate urls to return
+ * @return {Array}             Array of non-duplicate urls from URLList
+ */
 var combineAndStripURLs = function(urlList, maxResults) {
-  var nonDupe = true
-  var combined = []
-  for (var item in urlList) {
-    // remove query string
-    urlList[item][1] = removeQueryStr(urlList[item][1])
-
-    // Check for duplicates by looping over comibned
-    for (var parsedItem in combined) {
-      if (
-        urlList[item][1] === combined[parsedItem][1]) { // same URL
-        nonDupe = false
-        break
-      }
-    }
-    if (nonDupe) {
-      combined.push(urlList[item])
-    }
-    nonDupe = true
-  }
-  return combined.slice(0, maxResults)
+  // Array of all URLs in urlList, with query strings removed
+  const urls = urlList.map(item => removeQueryStr(item[1]))
+  // boolean array of if URL appears at previous index
+  const isRepeat = urls.map((url, index) => urls.slice(0, index).includes(url))
+  // filter out repeated elements, return requested number of results
+  return urlList.filter((elt, index) => !isRepeat[index]).slice(0, maxResults)
 }
 
 module.exports = {
