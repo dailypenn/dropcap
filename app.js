@@ -97,12 +97,12 @@ var mergeOGData = function(canonicalURL, urlData) {
         reject(results)
       }
       var res = {
-        'gaTitle': util.htmlEscape(urlData[0]),
-        'ogTitle': util.htmlEscape(results.data.ogTitle),
+        'gaTitle': urlData[0].encodeHTML(),
+        'ogTitle': results.data.ogTitle.encodeHTML(),
         'path': urlData[1],
         'authors': urlData[2].split(', '),
         'views': urlData[3],
-        'image': results.data.ogImage.url.replace('p.', 't.')
+        'image': results.data.ogImage.url.replace('p.', 't.') // preview->thumb
       }
       resolve(res)
     })
@@ -125,7 +125,7 @@ app.get('/:property', (req, res) => {
     res.send(`{"error": "unknown google analytics property ${propertyName}"}`)
     return
   }
-  // 10 browser cache, 30 minute public cache
+  // 10 min browser cache, 30 minute public cache
   res.set('Cache-Control', 'public, max-age=600, s-maxage=1800')
   res.set('Access-Control-Allow-Origin', '*')
   res.set('Access-Control-Allow-Methods', 'GET')
