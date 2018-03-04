@@ -1,3 +1,16 @@
+// Add encodeHTML() to String's prototype
+String.prototype.encodeHTML = function() {
+  // \x21-\x2f      ASCII punctuation
+  // \x3A-\x40      ASCII punctuation
+  // \x5b-\x60      ASCII punctuation
+  // \xa0-\xff      Latin 1 supp
+  // \u2013-\u2044  Misc punctuation
+  return this.replace(/[\x21-\x2b\x2f\xa0-\xff\x3A-\x40\u2013-\u2044]/g, (i) => {
+    return '&#' + i.charCodeAt(0) + ';'
+  })
+}
+
+
 var getYear = () => { return new Date().getFullYear() }
 var getLastYear = () => { return new Date().getFullYear() }
 var getMonth = () => { return new Date().getMonth() + 1 }
@@ -24,12 +37,6 @@ var getMonthPagePath = function(pathLevel) {
   var thisMonth = () => getMonth() === 1 ? '01' : (`0${month + 1}`).slice(-2)
   // return pagepath with correct level for the two months
   return `${pathFactory(pathLevel, lastMonth)},${pathFactory(pathLevel, thisMonth)}`
-}
-
-var htmlEscape = function(str) {
-  return str.replace(/[\x26\x0A<>'"—]/g, function(str) {
-    return '&#' + str.charCodeAt(0) + ''
-  })
 }
 
 var removeQueryStr = function(url) {
@@ -68,6 +75,5 @@ var combineAndStripURLs = function(urlList, maxResults) {
 module.exports = {
   getYearPagePath: getYearPagePath,
   getMonthPagePath: getMonthPagePath,
-  htmlEscape: htmlEscape,
   combineAndStripURLs: combineAndStripURLs
 }
