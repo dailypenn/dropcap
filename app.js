@@ -3,8 +3,11 @@ const cors      = require('cors');
 const google    = require('googleapis');
 const openGraph = require('open-graph-scraper');
 
-const util      = require('./util');
-const conf      = require('./config.json');
+const conf = require('./config.json');
+const {encodeHTML,
+       getYearPagePath,
+       getMonthPagePath,
+       combineAndStripURLs} = require('./util');
 
 const app = express();
 app.use(cors());
@@ -38,15 +41,15 @@ function queryTopArticles(analytics, viewName, maxResults) {
         'sort': '-ga:pageViews',
         'max-results': maxResults * 2, // get 2x max results to remove dupes
         'filters': VIEWS[viewName].blog ? // Blogs have slightly different page path layouts
-          `ga:pagePathLevel1==/blog/;ga:pagePathLevel2==/under-the-button/;${util.getYearPagePath(3)},${util.getMonthPagePath(4)}` :
-          `ga:pagePathLevel1==/article/;${util.getYearPagePath(2)};${util.getMonthPagePath(3)}`
+          `ga:pagePathLevel1==/blog/;ga:pagePathLevel2==/under-the-button/;${getYearPagePath(3)},${getMonthPagePath(4)}` :
+          `ga:pagePathLevel1==/article/;${getYearPagePath(2)};${getMonthPagePath(3)}`
       }, function (err, response) {
         if (err) {
           console.error('Analytics fetching error');
           console.error(err);
           reject(err);
         }
-        var topURLs = util.combineAndStripURLs(response.rows, maxResults);
+        var topURLs = combineAndStripURLs(response.rows, maxResults);
         return resolve(urlDataAsJSON(topURLs, viewName));
       });
     });
@@ -96,8 +99,8 @@ var mergeOGData = function(canonicalURL, urlData) {
         reject(results);
       }
       var res = {
-        'gaTitle': urlData[0].encodeHTML(),
-        'ogTitle': results.data.ogTitle.encodeHTML(),
+        'gaTitle': encodeHTML(urlData[0]),
+        'ogTitle': encodeHTML(results.data.ogTitle),
         'path': urlData[1],
         'authors': urlData[2].split(', '),
         'views': urlData[3],
