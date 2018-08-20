@@ -19,6 +19,7 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "debug": "^2.2.0",
+    "eslint": "^5.4.0",
     "mocha": "^3.0.2",
     "nyc": "^10.0.0",
     "supertest": "^2.0.0"
