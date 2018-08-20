@@ -2,18 +2,20 @@
   "views": {
     "DP": {
       "id": "ga:22050415",
-      "baseURL": "http://www.thedp.com",
-      "blog": false
+      "baseURL": "http://www.thedp.com"
     },
     "34ST": {
       "id": "ga:2741074",
-      "baseURL": "http://www.34st.com",
-      "blog": false
+      "baseURL": "https://www.34st.com"
     },
     "UTB": {
       "id": "ga:11315433",
+      "baseURL": "https://www.underthebutton.com"
+    },
+    "example-blog": {
+      "id": "ga:123456789",
       "baseURL": "http://www.thedp.com",
-      "blog": true
+      "blogSlug": "example-blog"
     }
   }
 }
