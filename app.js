@@ -21,7 +21,7 @@ const queryTopArticles = (viewName, maxResults) => {
     const scopes = ['https://www.googleapis.com/auth/analytics.readonly'];
     const jwt = new google.auth.JWT(client_email, null, private_key, scopes, null);
 
-    jwt.authorize(err => {
+    jwt.authorize((err) => {
       if (err) reject(err);
 
       const {data: {ga}} = google.analytics('v3');
@@ -40,7 +40,7 @@ const queryTopArticles = (viewName, maxResults) => {
         'filters': VIEWS[viewName].blogSlug ?
           `ga:pagePathLevel1==/blog/;ga:pagePathLevel2==/${VIEWS[viewName].blogSlug}/;${getYearPagePath(3)};${getMonthPagePath(4)}` :
           `ga:pagePathLevel1==/article/;${getYearPagePath(2)};${getMonthPagePath(3)}`
-      }, function (err, response) {
+      }, (err, response) => {
         if (err) return reject(err);
         if (!response.rows) return reject(`Empty GA API response for ${VIEWS[viewName].name}`);
 
@@ -49,7 +49,7 @@ const queryTopArticles = (viewName, maxResults) => {
       });
     });
   });
-}
+};
 
 const urlDataAsJSON = (urlList, viewName) => {
   return new Promise((resolve, reject) => {
