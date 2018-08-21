@@ -36,11 +36,7 @@ For a blog, the `baseURL` should be whichever website it's hosted on, and the `b
     3. Hit `Create credentials` and select `Service account key`.
     4. Select `dropcap` in the dropdown, and download the JSON option.
 2. Rename the JSON to `dropcap-service-credentials.json` and put it in this folder. (It is automatically ignored by the `gitignore`, so feel free to keep it in your local repo.)
-3. From inside your local `dropcap` repo folder, use your command line to log in to your Google Cloud account with
-```
-gcloud auth application-default login
-```
-If you don't have a Google Cloud account, talk to the Director of Web Development.
+3. From inside your local `dropcap` repo folder, use your command line to log in to your Google Cloud account with `gcloud auth application-default login`. If you don't have a Google Cloud account, talk to the Director of Web Development.
     1. If you don't already have `gcloud` installed, follow the steps [here](https://cloud.google.com/sdk/docs/) to do so.
     2. Make sure to use your DP email for authentication!
     3. When setting up (on the `init` command), choose `web-services-dp` as your cloud project to use as default.
