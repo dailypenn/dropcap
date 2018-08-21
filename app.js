@@ -11,6 +11,7 @@ const {encodeHTML,
        getMonthPagePath,
        combineAndStripURLs} = require('./util');
 
+const TIMEOUT = 9000;
 const VIEWS = conf.views;
 const app = express();
 app.use(cors());
@@ -41,7 +42,7 @@ const queryTopArticles = (viewName, maxResults) => {
           `ga:pagePathLevel1==/article/;${getYearPagePath(2)};${getMonthPagePath(3)}`
       }, function (err, response) {
         if (err) return reject(err);
-        if (!response.rows) return reject(`Empty GA API response for ${viewName}`);
+        if (!response.rows) return reject(`Empty GA API response for ${VIEWS[viewName].name}`);
 
         const topURLs = combineAndStripURLs(response.rows, maxResults);
         return resolve(urlDataAsJSON(topURLs, viewName));
@@ -50,76 +51,61 @@ const queryTopArticles = (viewName, maxResults) => {
   });
 }
 
-var urlDataAsJSON = function(urlList, viewName) {
-  const baseURL = VIEWS[viewName].baseURL;
+const urlDataAsJSON = (urlList, viewName) => {
   return new Promise((resolve, reject) => {
-    var result = [];
+    const result = [];
 
-    for (var item in urlList) {
-      var urlItem = urlList[item];
-      var urlPath = urlItem[1]; // get URL from list item
-
-      // remove leading title TODO Make this a constant or something.
-      urlItem[0] = urlItem[0].replace('The Daily Pennsylvanian | ', '');
-      urlItem[0] = urlItem[0].replace(' | The Daily Pennsylvanian', '');
-      urlItem[0] = urlItem[0].replace(' | 34st Street Magazine', '');
-
-      mergeOGData(baseURL + urlPath, urlItem).then(function(data) {
+    for (const item of urlList) {
+      const canonicalURL = VIEWS[viewName].baseURL + item[1];
+      mergeOGData(canonicalURL, item).then((data) => {
         result.push(data);
 
         // Check for done conditions
         if (result.length === urlList.length) {
-          result.sort(function(o1, o2) {
-            return o2.views - o1.views;
-          });
-          result = {'result': result};
-          return resolve(result);
+          result.sort((o1, o2) => o2.views - o1.views);
+          return resolve({'result': result});
         }
-      }, function(err) {
-        console.error('Open graph merging error');
-        console.error(err);
-        reject(err);
-      });
+      }, (err) => reject(err));
     }
   });
 };
 
-var mergeOGData = function(canonicalURL, urlData) {
+const mergeOGData = (canonicalURL, urlData) => {
   return new Promise((resolve, reject) =>  {
-    openGraph({url: canonicalURL, timeout: 9000}, (err, results) => {
-      if (err) {
-        console.error('Open graph fetching error');
-        console.error(err);
-        reject(results);
-      }
-      var res = {
+    openGraph({url: canonicalURL, timeout: TIMEOUT}, (err, results) => {
+      if (err) return reject(err);
+
+      // Combine the Analytics data with the article's OG data
+      resolve({
         'gaTitle': encodeHTML(urlData[0]),
         'ogTitle': encodeHTML(results.data.ogTitle),
         'path': urlData[1],
         'authors': urlData[2].split(', '),
         'views': urlData[3],
-        'image': results.data.ogImage.url.replace('p.', 't.') // preview->thumb
-      };
-      resolve(res);
+        // On older images, convert from the preview size to thumbnail
+        'image': results.data.ogImage.url.replace('p.', 't.')
+      });
     });
   });
 };
 
-// No favicon - just to keep it from throwing errors
-app.get('/favicon.ico', (req, res) => { res.status(204); });
+// There isn't a favicon; just to keep it from throwing errors
+app.get('/favicon.ico', (req, res) => res.status(204));
 
-app.get('/:property', (req, res) => {
-  const propertyName = req.params.property.toUpperCase();
-  if (VIEWS[propertyName].id == null) {
-    res.send(`{"error": "unknown google analytics property ${propertyName}"}`);
-    return;
+app.get('/:view', (req, res) => {
+  const view = req.params.view.toUpperCase();
+
+  // If this view isn't in the config, don't try to query for it
+  if (!VIEWS[view]) {
+    return res.status(404).send({error: `Unknown Google Analytics view ${view}`});
   }
-  // 10 min browser cache, 30 minute public cache
+
+  // 10-minute browser cache, 30-minute public cache
   res.set('Cache-Control', 'public, max-age=600, s-maxage=1800');
+  // TODO: get policy from config
   res.set('Access-Control-Allow-Origin', '*');
   res.set('Access-Control-Allow-Methods', 'GET');
-  res.set('Cache-Control', 'public, max-age=600, s-maxage=1800');
-  queryTopArticles(propertyName, 10)
+  queryTopArticles(view, 10)
     .then((data) => res.send(data))
     .catch((err) => {
       res.status(500).send({ error: err });

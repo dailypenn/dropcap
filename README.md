@@ -2,7 +2,34 @@
 
 Dropcap is The Daily Pennsylvanian's web service to populate the Most Read sections on the publication websites. It queries the relevant Google Analytics results from the past two weeks, and filters them to only show popular, recent and unique articles.
 
+## Configuration
+
+Endpoints for sites and blogs need slightly different configurations.
+
+All endpoints should be specified in all uppercase letters, and should contain a name, their Google Analytics ID, and their base URL. The ID is a view's ID, not a property or app ID (i.e. it should be all numbers, not proceeded by `UA`). The base URL does not need a slash at the end, as the path returned from Google's API will have a leading slash.
+
+For a blog, the `baseURL` should be whichever website it's hosted on, and the `blogSlug` should be what appears in its URL. In this case, the blog below would be at the URL `http://www.thedp.com/blog/example-blog`.
+
+```json
+{
+  "views": {
+    "DP": {
+      "name": "The Daily Pennsylvanian",
+      "id": "ga:22050415",
+      "baseURL": "http://www.thedp.com"
+    },
+    "EXAMPLE-BLOG": {
+      "name": "Example Blog",
+      "id": "ga:123456789",
+      "baseURL": "http://www.thedp.com",
+      "blogSlug": "example-blog"
+    }
+  }
+}
+```
+
 ## Local Development
+
 1. Get the dropcap service credentials JSON file. If you have Google Cloud access (this probably only applies to Directors of Web Development), follow the steps below. Otherwise, ask the Director for the file.
     1. Go to [console.cloud.google.com](console.cloud.google.com) and log in with your DP account.
     2. Go to `Credentials`, under `APIs & Services`.
@@ -27,6 +54,7 @@ localhost:3000/UTB for Under the Button
 ```
 
 ## Deploying to GCP
+
 1. If you have not done so already, install the `gcloud` command line tool (follow the instructions above if you have not).
 2. Update `gcloud` and install beta features with
 ```

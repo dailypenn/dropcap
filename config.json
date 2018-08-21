@@ -1,21 +1,19 @@
 {
   "views": {
     "DP": {
+      "name": "The Daily Pennsylvanian",
       "id": "ga:22050415",
       "baseURL": "http://www.thedp.com"
     },
     "34ST": {
+      "name": "34th Street Magazine",
       "id": "ga:2741074",
       "baseURL": "https://www.34st.com"
     },
     "UTB": {
+      "name": "Under the Button",
       "id": "ga:11315433",
       "baseURL": "https://www.underthebutton.com"
-    },
-    "example-blog": {
-      "id": "ga:123456789",
-      "baseURL": "http://www.thedp.com",
-      "blogSlug": "example-blog"
     }
   }
 }
