@@ -3,7 +3,7 @@ const cors      = require('cors');
 const google    = require('googleapis');
 const openGraph = require('open-graph-scraper');
 
-const conf = require('./config.json');
+const config = require('./config.json');
 const {client_email,
        private_key} = require('./dropcap-service-credentials.json');
 const {encodeHTML,
@@ -12,7 +12,7 @@ const {encodeHTML,
        combineAndStripURLs} = require('./util');
 
 const TIMEOUT = 9000;
-const VIEWS = conf.views;
+const VIEWS = config.views;
 const app = express();
 app.use(cors());
 
