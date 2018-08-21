@@ -29,7 +29,7 @@ const queryTopArticles = (viewName, maxResults) => {
         'auth': jwt,
         'ids': VIEWS[viewName].id,
         'metrics': 'ga:pageViews',
-        // dimension1 is the author
+        // Custom dimension1 is used for authors
         'dimensions': 'ga:pageTitle,ga:pagePath,ga:dimension1',
         'start-date': '7daysAgo',
         'end-date': 'today',
