@@ -96,15 +96,13 @@ app.get('/:view', (req, res) => {
   const view = req.params.view.toUpperCase();
 
   // If this view isn't in the config, don't try to query for it
-  if (!VIEWS[view]) {
-    return res.status(404).send({error: `Unknown Google Analytics view ${view}`});
-  }
+  if (!VIEWS[view]) return res.status(404).send({error: `Unknown view ${view}`});
 
   // 10-minute browser cache, 30-minute public cache
   res.set('Cache-Control', 'public, max-age=600, s-maxage=1800');
-  // TODO: get policy from config
   res.set('Access-Control-Allow-Origin', '*');
   res.set('Access-Control-Allow-Methods', 'GET');
+
   queryTopArticles(view, 10)
     .then((data) => res.send(data))
     .catch((err) => {
