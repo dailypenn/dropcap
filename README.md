@@ -61,3 +61,7 @@ gcloud components update && gcloud components install beta
 ```
 gcloud beta functions deploy dropcap --stage-bucket cloud-function-deployments --trigger-http
 ```
+
+## License
+
+This code is available under the [MIT License](LICENSE.md).
