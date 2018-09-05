@@ -31,7 +31,7 @@ For a blog, the `baseURL` should be whichever website it's hosted on, and the `b
 ## Local Development
 
 1. Get the dropcap service credentials JSON file. If you have Google Cloud access (this probably only applies to Directors of Web Development), follow the steps below. Otherwise, ask the Director for the file.
-    1. Go to [console.cloud.google.com](console.cloud.google.com) and log inwith your DP account.
+    1. Go to [console.cloud.google.com](console.cloud.google.com) and log in with your DP account.
     2. Go to `Credentials`, under `APIs & Services`.
     3. Hit `Create credentials` and select `Service account key`.
     4. Select `dropcap` in the dropdown, and download the JSON option.
