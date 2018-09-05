@@ -11,7 +11,7 @@ const {encodeHTML,
        getMonthPagePath,
        combineAndStripURLs} = require('./util');
 
-const TIMEOUT = 9000;
+const TIMEOUT = 10000;
 const VIEWS = config.views;
 const app = express();
 app.use(cors());
@@ -73,7 +73,7 @@ const urlDataAsJSON = (urlList, viewName) => {
 const mergeOGData = (canonicalURL, urlData) => {
   return new Promise((resolve, reject) =>  {
     openGraph({url: canonicalURL, timeout: TIMEOUT}, (err, results) => {
-      if (err) return reject(err);
+      if (err) return reject(results);
 
       // Combine the Analytics data with the article's OG data
       resolve({
