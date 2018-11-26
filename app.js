@@ -102,6 +102,8 @@ app.get('/:view', (req, res) => {
   res.set('Cache-Control', 'public, max-age=600, s-maxage=1800');
   res.set('Access-Control-Allow-Origin', '*');
   res.set('Access-Control-Allow-Methods', 'GET');
+  // identifier for SNWorks
+  res.set('User-Agent','DP-Dropcap');
 
   queryTopArticles(view, 10)
     .then((data) => res.send(data))
