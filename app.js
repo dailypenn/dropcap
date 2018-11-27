@@ -72,7 +72,9 @@ const urlDataAsJSON = (urlList, viewName) => {
 
 const mergeOGData = (canonicalURL, urlData) => {
   return new Promise((resolve, reject) =>  {
-    openGraph({url: canonicalURL, timeout: TIMEOUT}, (err, results) => {
+    const options = {url: canonicalURL, timeout: TIMEOUT, headers: {'User-Agent': 'DP-Dropcap'}};
+    openGraph(options, (err, results) => {
+      console.log(results);
       if (err) return reject(results);
 
       // Combine the Analytics data with the article's OG data
