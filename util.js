@@ -17,7 +17,7 @@ exports.getYearPagePath = (pathLevel) => {
 
   // If it's not January, return current year; otherwise, return last year too
   return new Date().getMonth() ? pathFactory(pathLevel, getYear) :
-    `${pathFactory(pathLevel, getYear)},${pathFactory(pathLevel, getLastYear)}`;
+    `${pathFactory(pathLevel, getLastYear)},${pathFactory(pathLevel, getYear)}`;
 };
 
 // Returns appropriate month path based on current month
@@ -25,8 +25,8 @@ exports.getMonthPagePath = (level) => {
   const month = new Date().getMonth();
 
   // If it's January, the last month is December; otherwise, calculate months
-  const lastMonth = () => month === 0 ? '12' : `0${month}`.slice(-2);
-  const thisMonth = () => month === 0 ? '01' : `0${month + 1}`.slice(-2);
+  const lastMonth = () => month ? `0${month}`.slice(-2) : '12';
+  const thisMonth = () => month ? `0${month + 1}`.slice(-2) : '01';
 
   // Return pagepath with correct level for the past two months
   return `${pathFactory(level, lastMonth)},${pathFactory(level, thisMonth)}`;
