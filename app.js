@@ -4,12 +4,8 @@ const google    = require('googleapis');
 const openGraph = require('open-graph-scraper');
 
 const config = require('./config.json');
-const {client_email,
-       private_key} = require('./dropcap-service-credentials.json');
-const {encodeHTML,
-       getYearPagePath,
-       getMonthPagePath,
-       combineAndStripURLs} = require('./util');
+const {client_email, private_key} = require('./dropcap-service-credentials.json');
+const {encodeHTML, getPagePath, combineAndStripURLs} = require('./util');
 
 const TIMEOUT = 10000;
 const VIEWS = config.views;
@@ -36,10 +32,7 @@ const queryTopArticles = (viewName, maxResults) => {
         'sort': '-ga:pageViews',
         // Query twice the maximum number of results to remove duplicates
         'max-results': maxResults * 2,
-        // Blogs have slightly different page path layouts
-        'filters': VIEWS[viewName].blogSlug ?
-          `ga:pagePathLevel1==/blog/;ga:pagePathLevel2==/${VIEWS[viewName].blogSlug}/;${getYearPagePath(3)};${getMonthPagePath(4)}` :
-          `ga:pagePathLevel1==/article/;${getYearPagePath(2)};${getMonthPagePath(3)}`
+        'filters': getPagePath(VIEWS[viewName].blogSlug)
       }, (err, response) => {
         if (err) return reject(err);
         if (!response.rows) return reject(`Empty GA API response for ${VIEWS[viewName].name}`);
@@ -74,7 +67,6 @@ const mergeOGData = (canonicalURL, urlData) => {
   return new Promise((resolve, reject) =>  {
     const options = {url: canonicalURL, timeout: TIMEOUT, headers: {'User-Agent': 'DP-Dropcap'}};
     openGraph(options, (err, results) => {
-      console.log(results);
       if (err) return reject(results);
 
       // Combine the Analytics data with the article's OG data

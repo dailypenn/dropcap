@@ -1,5 +1,5 @@
-// Builds a ga:pagePath parameter with level and the return value of func
-const pathFactory = (level, func) => `ga:pagePathLevel${level}==/${func()}/`;
+// Builds a ga:pagePath parameter with a regex on the year and month
+const pathFactory = (year, month, blog) => `ga:pagePath=~^/${blog ? `blog/${blog}` : 'article'}/${year}/${month}/`;
 
 // HTML encodes a given string
 exports.encodeHTML = (s) => {
@@ -10,27 +10,17 @@ exports.encodeHTML = (s) => {
   return s.replace(regex, (i) => `&#${i.charCodeAt(0)};`);
 };
 
-// Returns appropriate year path based on current month
-exports.getYearPagePath = (pathLevel) => {
-  const getYear = () => new Date().getFullYear();
-  const getLastYear = () => new Date().getFullYear() - 1;
-
-  // If it's not January, return current year; otherwise, return last year too
-  return new Date().getMonth() ? pathFactory(pathLevel, getYear) :
-    `${pathFactory(pathLevel, getLastYear)},${pathFactory(pathLevel, getYear)}`;
-};
-
-// Returns appropriate month path based on current month
-exports.getMonthPagePath = (level) => {
-  const month = new Date().getMonth();
-
+// Returns appropriate path based on current month
+exports.getPagePath = (blog) => {
   // If it's January, the last month is December; otherwise, calculate months
-  const lastMonth = () => month ? `0${month}`.slice(-2) : '12';
-  const thisMonth = () => month ? `0${month + 1}`.slice(-2) : '01';
+  const month = new Date().getMonth();
+  const lastMonth = month ? `0${month}`.slice(-2) : '12';
+  const thisMonth = `0${month + 1}`.slice(-2);
 
-  // Return pagepath with correct level for the past two months
-  return `${pathFactory(level, lastMonth)},${pathFactory(level, thisMonth)}`;
-};
+  // Return pagepath for the past two months, adjusting the year for January
+  const year = new Date().getFullYear();
+  return `${pathFactory(month ? year : year - 1, lastMonth, blog)},${pathFactory(year, thisMonth, blog)}`;
+}
 
 // Removes query strings from URLs and removes repeated results based on slugs
 exports.combineAndStripURLs = (urlList, maxResults) => {

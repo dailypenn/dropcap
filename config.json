@@ -14,6 +14,12 @@
       "name": "Under the Button",
       "id": "ga:11315433",
       "baseURL": "https://www.underthebutton.com"
+    },
+    "BUZZ": {
+      "name": "The Buzz",
+      "id": "ga:23926411",
+      "baseURL": "https://www.thedp.com",
+      "blogSlug": "buzz"
     }
   }
 }
