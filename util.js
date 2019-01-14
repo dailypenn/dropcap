@@ -20,7 +20,7 @@ exports.getPagePath = (blog) => {
   // Return pagepath for the past two months, adjusting the year for January
   const year = new Date().getFullYear();
   return `${pathFactory(month ? year : year - 1, lastMonth, blog)},${pathFactory(year, thisMonth, blog)}`;
-}
+};
 
 // Removes query strings from URLs and removes repeated results based on slugs
 exports.combineAndStripURLs = (urlList, maxResults) => {

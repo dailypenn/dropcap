@@ -10,6 +10,8 @@ All endpoints should be specified in all uppercase letters, and should contain a
 
 For a blog, the `baseURL` should be whichever website it's hosted on, and the `blogSlug` should be what appears in its URL. In this case, the blog below would be at the URL `http://www.thedp.com/blog/example-blog`.
 
+As of January 2019, the DP does not have any active blogs. The Buzz, an old sports blog, is included in `config.json` for testing purposes, but don't be alarmed if it doesn't return any GA results, given that it's defunct.
+
 ```json
 {
   "views": {
@@ -48,6 +50,7 @@ For a blog, the `baseURL` should be whichever website it's hosted on, and the `b
 localhost:3000/DP for The Daily Pennsylvanian
 localhost:3000/34ST for 34th Street
 localhost:3000/UTB for Under the Button
+localhost:3000/BUZZ for The Buzz
 ```
 
 ## Deploying to GCP
