@@ -24,10 +24,12 @@ exports.getPagePath = (blog) => {
 
 // Removes query strings from URLs and removes repeated results based on slugs
 exports.combineAndStripURLs = (urlList, maxResults) => {
+  // HOTFIX - will be resolved soon
+  const cleanedUrls = urlList.filter(item => !(item[1].includes('aggregate-sample')));
   // Clean up URLS: array of all URLs in urlList, with query strings removed
-  const urls = urlList.map(item => item[1].split('?')[0]);
+  const urls = cleanedUrls.map(item => item[1].split('?')[0]);
   // Check for duplicates: boolean array of if URL appears at previous index
   const isRepeat = urls.map((url, index) => urls.slice(0, index).includes(url));
   // Remove duplicates: filter out repeats, return requested number of results
-  return urlList.filter((elt, index) => !isRepeat[index]).slice(0, maxResults);
+  return cleanedUrls.filter((elt, index) => !isRepeat[index]).slice(0, maxResults);
 };
