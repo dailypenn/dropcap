@@ -29,5 +29,5 @@ exports.combineAndStripURLs = (urlList, maxResults) => {
   // Check for duplicates: boolean array of if URL appears at previous index
   const isRepeat = urls.map((url, index) => urls.slice(0, index).includes(url));
   // Remove duplicates: filter out repeats, return requested number of results
-  return cleanedUrls.filter((elt, index) => !isRepeat[index]).slice(0, maxResults);
+  return urlList.filter((elt, index) => !isRepeat[index]).slice(0, maxResults);
 };
