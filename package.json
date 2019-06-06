@@ -8,11 +8,11 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.16.4",
+    "express": "^4.17.1",
     "googleapis": "^22.2.0",
-    "open-graph-scraper": "^3.6.0"
+    "open-graph-scraper": "^3.6.1"
   },
   "devDependencies": {
-    "eslint": "^5.13.0"
+    "eslint": "^5.16.0"
   }
 }
